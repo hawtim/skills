@@ -1,0 +1,7 @@
+interface:
+  display_name: "ETF Theme Daily Report"
+  short_description: "生成A股科技ETF主题账户日报"
+  default_prompt: "Use $etf-theme-daily-report to generate today's ETF theme account daily report."
+
+policy:
+  allow_implicit_invocation: false

@@ -443,7 +443,11 @@ def run_strategy(
     logs: list[dict] = []
     month_ends = month_end_dates(dates)
     first_by_month = first_trading_dates_by_month(dates)
-    trigger_tranches = [(0.03, 0.20, "drawdown_3pct_principal_add"), (0.08, 0.20, "drawdown_8pct_principal_add"), (0.12, 0.20, "drawdown_12pct_principal_add")]
+    principal_tranches = [
+        {"drawdown": 0.03, "fallback_day": 5, "pct": 0.20, "drawdown_trigger": "drawdown_3pct_principal_add", "time_trigger": "time_5_trading_days_principal_add"},
+        {"drawdown": 0.08, "fallback_day": 20, "pct": 0.20, "drawdown_trigger": "drawdown_8pct_principal_add", "time_trigger": "time_20_trading_days_principal_add"},
+        {"drawdown": 0.12, "fallback_day": 40, "pct": 0.20, "drawdown_trigger": "drawdown_12pct_principal_add", "time_trigger": "time_40_trading_days_principal_add"},
+    ]
     trigger_index = 0
     margin_tranches = [(0.10, 50000 / 400000, "margin_drawdown_10pct"), (0.15, 80000 / 400000, "margin_drawdown_15pct"), (0.20, 120000 / 400000, "margin_drawdown_20pct")]
     margin_index = 0
@@ -460,15 +464,18 @@ def run_strategy(
         portfolio.high_watermark = max(portfolio.high_watermark, total_value)
         drawdown = 0.0 if portfolio.high_watermark <= 0 else total_value / portfolio.high_watermark - 1
 
-        if name in {"triggered_plan", "triggered_plan_with_margin"} and i > 0 and trigger_index < len(trigger_tranches):
-            threshold, tranche_pct, trigger_name = trigger_tranches[trigger_index]
-            if -drawdown >= threshold and portfolio.invested < principal_cap - 1:
-                if threshold >= 0.12 and -drawdown > 0.15:
-                    pass
-                else:
-                    buy_amount = min(principal_cap * tranche_pct, principal_cap - portfolio.invested)
-                    buy_target_notional(portfolio, prices, buy_amount, trigger_name, day, logs, principal_cap, name)
-                    trigger_index += 1
+        if name in {"triggered_plan", "triggered_plan_with_margin"} and i > 0 and trigger_index < len(principal_tranches):
+            tranche = principal_tranches[trigger_index]
+            trigger_name = None
+            if -drawdown >= tranche["drawdown"]:
+                trigger_name = tranche["drawdown_trigger"]
+            elif i >= tranche["fallback_day"]:
+                trigger_name = tranche["time_trigger"]
+
+            if trigger_name and portfolio.invested < principal_cap - 1:
+                buy_amount = min(principal_cap * tranche["pct"], principal_cap - portfolio.invested)
+                buy_target_notional(portfolio, prices, buy_amount, trigger_name, day, logs, principal_cap, name)
+                trigger_index += 1
 
         if name == "monthly_dca" and day in first_by_month[1:] and portfolio.invested < principal_cap - 1:
             buy_amount = min(principal_cap * 0.20, principal_cap - portfolio.invested)
@@ -500,7 +507,7 @@ def run_strategy(
                     buy_margin_notional(portfolio, prices, principal_cap * tranche_ratio, trigger_name, day, i, logs, principal_cap, name)
                     margin_index += 1
 
-        if day in month_ends and name != "one_shot_full":
+        if day in month_ends and name != "one_shot_full" and portfolio.invested >= principal_cap - 1:
             if name == "triggered_plan_with_margin" and portfolio.margin_used > 0:
                 pass
             else:

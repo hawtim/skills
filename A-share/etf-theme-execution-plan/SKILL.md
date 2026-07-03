@@ -15,7 +15,7 @@ Do not apply this skill to ordinary portfolio reviews or unrelated ETF holdings 
 
 Use `data/operation-log.csv` as the canonical operation-log schema when the user asks to track, append, reconcile, or review historical actions. Do not invent past trades; only record operations the user explicitly reports.
 
-Use `scripts/backtest_etf_plan.py` when the user asks to pull historical ETF data or backtest this plan. The script defaults to Yahoo Finance daily data, supports Eastmoney as an optional source, scales the principal amount with `--principal`, and writes price, NAV, operation-log, and summary CSV files. State the script assumptions when citing results: close-price execution, fractional shares, no fees/slippage/interest/taxes, and deterministic drawdown triggers for subjective plan language.
+Use `scripts/backtest_etf_plan.py` when the user asks to pull historical ETF data or backtest this plan. The script defaults to Yahoo Finance daily data, supports Eastmoney as an optional source, scales the principal amount with `--principal`, and writes price, NAV, operation-log, and summary CSV files. State the script assumptions when citing results: close-price execution, fractional shares, no fees/slippage/interest/taxes, deterministic time fallbacks for subjective build conditions, full principal deployment before ordinary rebalance, and margin usage only after drawdown triggers.
 
 ## Required Inputs
 

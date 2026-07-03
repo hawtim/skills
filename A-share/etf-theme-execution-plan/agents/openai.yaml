@@ -1,0 +1,7 @@
+interface:
+  display_name: "ETF Theme Execution Plan"
+  short_description: "按指定触发词执行科技ETF计划评估"
+  default_prompt: "Use $etf-theme-execution-plan to review my ETF holdings and decide the next action under the plan."
+
+policy:
+  allow_implicit_invocation: false

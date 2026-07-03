@@ -1,6 +1,6 @@
 ---
 name: etf-theme-execution-plan
-description: Explicitly triggered ETF theme account rulebook for the user's China A-share technology ETF plan. Use only when the user invokes "$etf-theme-execution-plan", says "启用ETF主题计划", "按ETF主题账户计划评估", or otherwise explicitly asks to apply this named execution plan to 159530, 159994, 515260, 561980, and 159538. Do not use merely because the user shares generic holdings, ETF positions, costs, profit/loss, or margin data.
+description: Explicitly triggered ETF theme account rulebook for the user's China A-share technology ETF plan. Use only when the user invokes "$etf-theme-execution-plan", says "启用ETF主题计划", "按ETF主题账户计划评估", or otherwise explicitly asks to apply this named execution plan to 159530, 159994, 515260, 159516, and 159538. Do not use merely because the user shares generic holdings, ETF positions, costs, profit/loss, or margin data.
 ---
 
 # ETF Theme Execution Plan
@@ -38,7 +38,7 @@ Covered ETFs:
 | 159530 | 机器人ETF易方达 | 30% |
 | 159994 | 通信ETF银华 | 25% |
 | 515260 | 电子ETF华宝 | 20% |
-| 561980 | 半导体设备ETF招商 | 15% |
+| 159516 | 半导体设备材料ETF国泰 | 15% |
 | 159538 | 信创ETF富国 | 10% |
 
 ## Evaluation Workflow
@@ -53,7 +53,7 @@ Covered ETFs:
    - Principal ETF position must not exceed the user's stated principal cap.
    - Margin buying is forbidden unless portfolio drawdown from stage high is at least 10%.
    - Margin dip-buying must not become permanent principal.
-   - 561980 must not remain above 20% weight.
+   - 159516 must not remain above 20% weight.
    - 159538 must not remain above 13% weight.
    - If portfolio loss exceeds 15%, require a theme review before mechanical buying.
 5. Apply the relevant trigger table from the reference:

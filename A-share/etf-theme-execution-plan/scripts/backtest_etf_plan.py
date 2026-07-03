@@ -26,7 +26,7 @@ ETFS = [
     {"code": "159530", "name": "机器人ETF易方达", "secid": "0.159530", "yahoo": "159530.SZ", "weight": 0.30, "lower": 0.25, "upper": 0.35},
     {"code": "159994", "name": "通信ETF银华", "secid": "0.159994", "yahoo": "159994.SZ", "weight": 0.25, "lower": 0.20, "upper": 0.30},
     {"code": "515260", "name": "电子ETF华宝", "secid": "1.515260", "yahoo": "515260.SS", "weight": 0.20, "lower": 0.16, "upper": 0.25},
-    {"code": "561980", "name": "半导体设备ETF招商", "secid": "1.561980", "yahoo": "561980.SS", "weight": 0.15, "lower": 0.10, "upper": 0.20},
+    {"code": "159516", "name": "半导体设备材料ETF国泰", "secid": "0.159516", "yahoo": "159516.SZ", "weight": 0.15, "lower": 0.10, "upper": 0.20},
     {"code": "159538", "name": "信创ETF富国", "secid": "0.159538", "yahoo": "159538.SZ", "weight": 0.10, "lower": 0.07, "upper": 0.13},
 ]
 
@@ -135,7 +135,40 @@ def fetch_yahoo_chart(symbol: str, begin: str, end: str) -> list[dict[str, str |
                 "turnover_pct": "",
             }
         )
-    return rows
+    return adjust_yahoo_price_discontinuities(rows)
+
+
+def adjust_yahoo_price_discontinuities(rows: list[dict[str, str | float]]) -> list[dict[str, str | float]]:
+    """Continuity-adjust Yahoo ETF prices when split-like jumps are unadjusted.
+
+    Some China ETF chart series from Yahoo carry raw post-split prices while
+    `adjclose` remains identical to close. For a portfolio backtest, an
+    unadjusted split-like halving would be incorrectly treated as a real loss.
+    This heuristic keeps the series on one synthetic adjusted-price basis when
+    a one-day close-to-close jump is too large for an ordinary ETF move.
+    """
+
+    adjusted: list[dict[str, str | float]] = []
+    factor = 1.0
+    previous_adjusted_close: float | None = None
+    for row in rows:
+        raw_close = float(row["close"])
+        tentative_close = raw_close * factor
+        if previous_adjusted_close and tentative_close > 0:
+            ratio = tentative_close / previous_adjusted_close
+            if ratio > 1.45 or ratio < 1 / 1.45:
+                factor *= previous_adjusted_close / tentative_close
+                tentative_close = raw_close * factor
+
+        new_row = dict(row)
+        for field in ("open", "close", "high", "low", "adj_close"):
+            value = row.get(field)
+            if value != "":
+                new_row[f"raw_{field}"] = value
+                new_row[field] = float(value) * factor
+        adjusted.append(new_row)
+        previous_adjusted_close = tentative_close
+    return adjusted
 
 
 def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
@@ -557,7 +590,27 @@ def main() -> int:
     write_csv(
         out_dir / "prices_h1_2026.csv",
         price_rows,
-        ["code", "name", "date", "open", "close", "high", "low", "volume", "amount", "adj_close", "amplitude_pct", "pct_change", "change", "turnover_pct"],
+        [
+            "code",
+            "name",
+            "date",
+            "open",
+            "close",
+            "high",
+            "low",
+            "volume",
+            "amount",
+            "adj_close",
+            "raw_open",
+            "raw_close",
+            "raw_high",
+            "raw_low",
+            "raw_adj_close",
+            "amplitude_pct",
+            "pct_change",
+            "change",
+            "turnover_pct",
+        ],
     )
     write_csv(out_dir / "nav_h1_2026.csv", all_nav, list(all_nav[0].keys()))
     write_csv(out_dir / "operation_log_backtest_h1_2026.csv", all_logs, list(all_logs[0].keys()))

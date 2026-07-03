@@ -1,0 +1,5 @@
+strategy,start_date,end_date,principal_cap,ending_total_value,ending_market_value,ending_cash,ending_margin_used,ending_principal_invested,return_on_principal_cap,return_on_invested_principal,max_drawdown,trade_count
+triggered_plan,2026-01-05,2026-07-03,400000.0,589151.6,589151.6,0.0,0.0,400000.0,0.472879,0.472879,-0.123694,20
+triggered_plan_with_margin,2026-01-05,2026-07-03,400000.0,595550.69,589151.6,6399.09,0.0,400000.0,0.488877,0.488877,-0.123694,35
+monthly_dca,2026-01-05,2026-07-03,400000.0,598495.83,598495.83,0.0,0.0,400000.0,0.49624,0.49624,-0.103267,20
+one_shot_full,2026-01-05,2026-07-03,400000.0,598488.39,598488.39,0.0,0.0,400000.0,0.496221,0.496221,-0.144213,10

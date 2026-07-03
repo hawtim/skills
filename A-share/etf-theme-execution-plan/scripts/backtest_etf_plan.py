@@ -23,11 +23,11 @@ from time import sleep
 
 
 ETFS = [
-    {"code": "159530", "name": "机器人ETF易方达", "secid": "0.159530", "yahoo": "159530.SZ", "weight": 0.30, "lower": 0.25, "upper": 0.35},
-    {"code": "159994", "name": "通信ETF银华", "secid": "0.159994", "yahoo": "159994.SZ", "weight": 0.25, "lower": 0.20, "upper": 0.30},
-    {"code": "515260", "name": "电子ETF华宝", "secid": "1.515260", "yahoo": "515260.SS", "weight": 0.20, "lower": 0.16, "upper": 0.25},
-    {"code": "159516", "name": "半导体设备材料ETF国泰", "secid": "0.159516", "yahoo": "159516.SZ", "weight": 0.15, "lower": 0.10, "upper": 0.20},
-    {"code": "159538", "name": "信创ETF富国", "secid": "0.159538", "yahoo": "159538.SZ", "weight": 0.10, "lower": 0.07, "upper": 0.13},
+    {"code": "159530", "name": "机器人ETF易方达", "secid": "0.159530", "yahoo": "159530.SZ", "tencent": "sz159530", "weight": 0.30, "lower": 0.25, "upper": 0.35},
+    {"code": "159994", "name": "通信ETF银华", "secid": "0.159994", "yahoo": "159994.SZ", "tencent": "sz159994", "weight": 0.25, "lower": 0.20, "upper": 0.30},
+    {"code": "515260", "name": "电子ETF华宝", "secid": "1.515260", "yahoo": "515260.SS", "tencent": "sh515260", "weight": 0.20, "lower": 0.16, "upper": 0.25},
+    {"code": "159516", "name": "半导体设备材料ETF国泰", "secid": "0.159516", "yahoo": "159516.SZ", "tencent": "sz159516", "weight": 0.15, "lower": 0.10, "upper": 0.20},
+    {"code": "159538", "name": "信创ETF富国", "secid": "0.159538", "yahoo": "159538.SZ", "tencent": "sz159538", "weight": 0.10, "lower": 0.07, "upper": 0.13},
 ]
 
 
@@ -129,6 +129,43 @@ def fetch_yahoo_chart(symbol: str, begin: str, end: str) -> list[dict[str, str |
                 "volume": float(volume) if volume is not None else "",
                 "amount": "",
                 "adj_close": float(adj[i]) if i < len(adj) and adj[i] is not None else "",
+                "amplitude_pct": "",
+                "pct_change": "",
+                "change": "",
+                "turnover_pct": "",
+            }
+        )
+    return adjust_yahoo_price_discontinuities(rows)
+
+
+def fetch_tencent_kline(symbol: str, begin: str, end: str) -> list[dict[str, str | float]]:
+    begin_dash = f"{begin[:4]}-{begin[4:6]}-{begin[6:]}"
+    end_dash = f"{end[:4]}-{end[4:6]}-{end[6:]}"
+    url = (
+        "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?"
+        f"param={symbol},day,{begin_dash},{end_dash},500,qfq"
+    )
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0", "Referer": "https://gu.qq.com/"},
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        payload = json.load(response)
+    data = payload.get("data", {}).get(symbol, {})
+    klines = data.get("qfqday") or data.get("day") or []
+    rows = []
+    for item in klines:
+        # Tencent format: date, open, close, high, low, volume.
+        rows.append(
+            {
+                "date": item[0],
+                "open": float(item[1]),
+                "close": float(item[2]),
+                "high": float(item[3]),
+                "low": float(item[4]),
+                "volume": float(item[5]),
+                "amount": "",
+                "adj_close": float(item[2]),
                 "amplitude_pct": "",
                 "pct_change": "",
                 "change": "",
@@ -561,7 +598,7 @@ def main() -> int:
     parser.add_argument("--begin", default="20260101")
     parser.add_argument("--end", default="20260630")
     parser.add_argument("--principal", type=float, default=400000)
-    parser.add_argument("--source", choices=["yahoo", "eastmoney"], default="yahoo")
+    parser.add_argument("--source", choices=["yahoo", "tencent", "eastmoney"], default="yahoo")
     parser.add_argument("--out-dir", default="A-share/etf-theme-execution-plan/backtests/h1-2026")
     args = parser.parse_args()
 
@@ -572,6 +609,8 @@ def main() -> int:
     for etf in ETFS:
         if args.source == "eastmoney":
             rows = fetch_eastmoney_kline(etf["secid"], args.begin, args.end)
+        elif args.source == "tencent":
+            rows = fetch_tencent_kline(etf["tencent"], args.begin, args.end)
         else:
             rows = fetch_yahoo_chart(etf["yahoo"], args.begin, args.end)
         if not rows:

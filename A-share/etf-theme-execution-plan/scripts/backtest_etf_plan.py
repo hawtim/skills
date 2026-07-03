@@ -38,6 +38,7 @@ class Portfolio:
     invested: float = 0.0
     high_watermark: float = 0.0
     margin_used: float = 0.0
+    margin_lots: list[dict] | None = None
 
 
 def fetch_eastmoney_kline(secid: str, begin: str, end: str) -> list[dict[str, str | float]]:
@@ -164,7 +165,7 @@ def prices_on(all_prices: dict[str, dict[str, dict]], day: str) -> dict[str, flo
 
 
 def value_portfolio(portfolio: Portfolio, prices: dict[str, float]) -> float:
-    return portfolio.cash + sum(portfolio.shares.get(code, 0.0) * price for code, price in prices.items())
+    return portfolio.cash + sum(portfolio.shares.get(code, 0.0) * price for code, price in prices.items()) - portfolio.margin_used
 
 
 def market_value_only(portfolio: Portfolio, prices: dict[str, float]) -> float:
@@ -214,6 +215,113 @@ def buy_target_notional(
         )
 
 
+def buy_margin_notional(
+    portfolio: Portfolio,
+    prices: dict[str, float],
+    notional: float,
+    trigger: str,
+    day: str,
+    day_index: int,
+    logs: list[dict],
+    principal_cap: float,
+    strategy: str,
+) -> None:
+    if portfolio.margin_lots is None:
+        portfolio.margin_lots = []
+    for etf in ETFS:
+        amount = notional * etf["weight"]
+        if amount <= 0:
+            continue
+        code = etf["code"]
+        price = prices[code]
+        shares = amount / price
+        portfolio.shares[code] = portfolio.shares.get(code, 0.0) + shares
+        portfolio.margin_used += amount
+        portfolio.margin_lots.append(
+            {
+                "code": code,
+                "name": etf["name"],
+                "shares": shares,
+                "borrowed": amount,
+                "cost_amount": amount,
+                "entry_day_index": day_index,
+            }
+        )
+        logs.append(
+            {
+                "strategy": strategy,
+                "trade_date": day,
+                "action_type": "margin_buy",
+                "trigger_type": trigger,
+                "etf_code": code,
+                "etf_name": etf["name"],
+                "price": round(price, 4),
+                "amount": round(amount, 2),
+                "principal_cap": round(principal_cap, 2),
+                "total_principal_invested_after_trade": round(portfolio.invested, 2),
+                "notes": "融资按目标权重抄底",
+            }
+        )
+
+
+def margin_lot_return(portfolio: Portfolio, prices: dict[str, float]) -> float:
+    lots = portfolio.margin_lots or []
+    cost = sum(lot["cost_amount"] for lot in lots)
+    if cost <= 0:
+        return 0.0
+    value = sum(lot["shares"] * prices[lot["code"]] for lot in lots)
+    borrowed = sum(lot["borrowed"] for lot in lots)
+    return (value - borrowed) / cost
+
+
+def reduce_margin(
+    portfolio: Portfolio,
+    prices: dict[str, float],
+    fraction: float,
+    trigger: str,
+    day: str,
+    logs: list[dict],
+    principal_cap: float,
+    strategy: str,
+) -> None:
+    lots = portfolio.margin_lots or []
+    if not lots:
+        return
+    fraction = max(0.0, min(1.0, fraction))
+    remaining_lots = []
+    for lot in lots:
+        sell_shares = lot["shares"] * fraction
+        repay = lot["borrowed"] * fraction
+        price = prices[lot["code"]]
+        proceeds = sell_shares * price
+        portfolio.shares[lot["code"]] -= sell_shares
+        portfolio.margin_used -= repay
+        portfolio.cash += proceeds - repay
+        logs.append(
+            {
+                "strategy": strategy,
+                "trade_date": day,
+                "action_type": "margin_sell_repay",
+                "trigger_type": trigger,
+                "etf_code": lot["code"],
+                "etf_name": lot["name"],
+                "price": round(price, 4),
+                "amount": round(proceeds, 2),
+                "principal_cap": round(principal_cap, 2),
+                "total_principal_invested_after_trade": round(portfolio.invested, 2),
+                "notes": f"卖出融资仓并还款，比例={fraction:.2f}",
+            }
+        )
+        lot["shares"] -= sell_shares
+        lot["borrowed"] -= repay
+        lot["cost_amount"] *= 1 - fraction
+        if lot["shares"] > 1e-9 and lot["borrowed"] > 1e-6:
+            remaining_lots.append(lot)
+    portfolio.margin_lots = remaining_lots
+    if abs(portfolio.margin_used) < 1e-6:
+        portfolio.margin_used = 0.0
+
+
 def rebalance_month_end(
     portfolio: Portfolio,
     prices: dict[str, float],
@@ -260,13 +368,15 @@ def rebalance_month_end(
     mv = market_value_only(portfolio, prices)
     for etf in ETFS:
         code = etf["code"]
-        if portfolio.cash <= 1:
+        principal_capacity = max(0.0, principal_cap - portfolio.invested)
+        investable_cash = min(portfolio.cash, principal_capacity)
+        if investable_cash <= 1:
             break
         if current_weights[code] >= etf["lower"]:
             continue
         target_value = mv * etf["weight"]
         current_value = portfolio.shares.get(code, 0.0) * prices[code]
-        buy_amount = min(portfolio.cash, max(0.0, target_value - current_value))
+        buy_amount = min(investable_cash, max(0.0, target_value - current_value))
         if buy_amount <= 0:
             continue
         portfolio.shares[code] = portfolio.shares.get(code, 0.0) + buy_amount / prices[code]
@@ -295,13 +405,17 @@ def run_strategy(
     all_prices: dict[str, dict[str, dict]],
     principal_cap: float,
 ) -> tuple[list[dict], list[dict], dict]:
-    portfolio = Portfolio(cash=principal_cap, shares={etf["code"]: 0.0 for etf in ETFS})
+    portfolio = Portfolio(cash=principal_cap, shares={etf["code"]: 0.0 for etf in ETFS}, margin_lots=[])
     nav_rows: list[dict] = []
     logs: list[dict] = []
     month_ends = month_end_dates(dates)
     first_by_month = first_trading_dates_by_month(dates)
     trigger_tranches = [(0.03, 0.20, "drawdown_3pct_principal_add"), (0.08, 0.20, "drawdown_8pct_principal_add"), (0.12, 0.20, "drawdown_12pct_principal_add")]
     trigger_index = 0
+    margin_tranches = [(0.10, 50000 / 400000, "margin_drawdown_10pct"), (0.15, 80000 / 400000, "margin_drawdown_15pct"), (0.20, 120000 / 400000, "margin_drawdown_20pct")]
+    margin_index = 0
+    margin_reduced_once = False
+    margin_paused = False
 
     for i, day in enumerate(dates):
         prices = prices_on(all_prices, day)
@@ -313,7 +427,7 @@ def run_strategy(
         portfolio.high_watermark = max(portfolio.high_watermark, total_value)
         drawdown = 0.0 if portfolio.high_watermark <= 0 else total_value / portfolio.high_watermark - 1
 
-        if name == "triggered_plan" and i > 0 and trigger_index < len(trigger_tranches):
+        if name in {"triggered_plan", "triggered_plan_with_margin"} and i > 0 and trigger_index < len(trigger_tranches):
             threshold, tranche_pct, trigger_name = trigger_tranches[trigger_index]
             if -drawdown >= threshold and portfolio.invested < principal_cap - 1:
                 if threshold >= 0.12 and -drawdown > 0.15:
@@ -331,8 +445,33 @@ def run_strategy(
             buy_amount = principal_cap - portfolio.invested
             buy_target_notional(portfolio, prices, buy_amount, "one_shot_remaining_60pct_benchmark", day, logs, principal_cap, name)
 
+        if name == "triggered_plan_with_margin" and portfolio.invested >= principal_cap - 1:
+            active_margin_return = margin_lot_return(portfolio, prices)
+            if portfolio.margin_used > 0 and active_margin_return <= -0.08:
+                margin_paused = True
+            if portfolio.margin_used > 0 and active_margin_return >= 0.15:
+                reduce_margin(portfolio, prices, 1.0, "margin_profit_15pct_clear", day, logs, principal_cap, name)
+                margin_reduced_once = True
+            elif portfolio.margin_used > 0 and active_margin_return >= 0.08 and not margin_reduced_once:
+                reduce_margin(portfolio, prices, 0.50, "margin_profit_8pct_sell_half", day, logs, principal_cap, name)
+                margin_reduced_once = True
+            elif portfolio.margin_used > 0:
+                oldest = min((lot["entry_day_index"] for lot in portfolio.margin_lots or []), default=i)
+                if i - oldest >= 20 and active_margin_return <= 0 and not margin_reduced_once:
+                    reduce_margin(portfolio, prices, 0.50, "margin_20_trading_days_no_rebound_sell_half", day, logs, principal_cap, name)
+                    margin_reduced_once = True
+
+            if not margin_paused and margin_index < len(margin_tranches):
+                threshold, tranche_ratio, trigger_name = margin_tranches[margin_index]
+                if -drawdown >= threshold:
+                    buy_margin_notional(portfolio, prices, principal_cap * tranche_ratio, trigger_name, day, i, logs, principal_cap, name)
+                    margin_index += 1
+
         if day in month_ends and name != "one_shot_full":
-            rebalance_month_end(portfolio, prices, day, logs, principal_cap, name)
+            if name == "triggered_plan_with_margin" and portfolio.margin_used > 0:
+                pass
+            else:
+                rebalance_month_end(portfolio, prices, day, logs, principal_cap, name)
 
         total_value = value_portfolio(portfolio, prices)
         market_value = market_value_only(portfolio, prices)
@@ -345,6 +484,7 @@ def run_strategy(
             "cash": round(portfolio.cash, 2),
             "market_value": round(market_value, 2),
             "principal_invested": round(portfolio.invested, 2),
+            "margin_used": round(portfolio.margin_used, 2),
             "return_on_principal_cap": round(total_value / principal_cap - 1, 6),
             "drawdown_from_strategy_high": round(drawdown, 6),
         }
@@ -366,6 +506,7 @@ def run_strategy(
         "ending_total_value": round(end_value, 2),
         "ending_market_value": round(market_value, 2),
         "ending_cash": round(nav_rows[-1]["cash"], 2),
+        "ending_margin_used": round(nav_rows[-1]["margin_used"], 2),
         "ending_principal_invested": round(invested, 2),
         "return_on_principal_cap": round(end_value / start_value - 1, 6),
         "return_on_invested_principal": round((end_value - (principal_cap - invested)) / invested - 1, 6) if invested else 0,
@@ -403,7 +544,7 @@ def main() -> int:
     if not common_dates:
         raise RuntimeError("No common trading dates across ETFs")
 
-    strategies = ["triggered_plan", "monthly_dca", "one_shot_full"]
+    strategies = ["triggered_plan", "triggered_plan_with_margin", "monthly_dca", "one_shot_full"]
     all_nav: list[dict] = []
     all_logs: list[dict] = []
     summaries: list[dict] = []

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Yifangda Core Balanced ETF Plan"
+  short_description: "按指定触发词执行易方达三ETF组合评估"
+  default_prompt: "Use $yifangda-core-balanced-etf-plan to review my ETF holdings and decide the next action under the plan."
+
+policy:
+  allow_implicit_invocation: false

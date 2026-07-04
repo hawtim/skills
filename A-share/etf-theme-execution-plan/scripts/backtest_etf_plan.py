@@ -377,7 +377,7 @@ def buy_target_notional(
         amount = notional * etf["weight"]
         notes = "按目标权重买入"
         if (
-            strategy == "enhanced_overheat_plan"
+            strategy.startswith("enhanced_overheat_plan")
             and all_prices is not None
             and dates is not None
             and day_index is not None
@@ -600,6 +600,16 @@ def run_strategy(
     principal_cap: float,
     start_index: int = 0,
 ) -> tuple[list[dict], list[dict], dict]:
+    if name.endswith("_margin"):
+        base_strategy = name[: -len("_margin")]
+        use_margin = True
+    elif name.endswith("_cash"):
+        base_strategy = name[: -len("_cash")]
+        use_margin = False
+    else:
+        base_strategy = name
+        use_margin = False
+
     portfolio = Portfolio(cash=principal_cap, shares={etf["code"]: 0.0 for etf in ETFS}, margin_lots=[])
     nav_rows: list[dict] = []
     logs: list[dict] = []
@@ -626,7 +636,7 @@ def run_strategy(
         if active_i == 0:
             initial_notional = principal_cap * 0.40
             trigger = "initial_40pct_build"
-            if name == "enhanced_overheat_plan" and portfolio_is_overheated(all_prices, dates, i):
+            if base_strategy == "enhanced_overheat_plan" and portfolio_is_overheated(all_prices, dates, i):
                 initial_notional = principal_cap * 0.20
                 deferred_initial_notional = principal_cap * 0.20
                 trigger = "initial_20pct_build_overheat_filter"
@@ -648,7 +658,7 @@ def run_strategy(
         portfolio.high_watermark = max(portfolio.high_watermark, total_value)
         drawdown = 0.0 if portfolio.high_watermark <= 0 else total_value / portfolio.high_watermark - 1
 
-        if name == "enhanced_overheat_plan" and deferred_initial_notional > 0 and active_i > 0:
+        if base_strategy == "enhanced_overheat_plan" and deferred_initial_notional > 0 and active_i > 0:
             trigger_name = None
             if -drawdown >= 0.03:
                 trigger_name = "deferred_initial_half_drawdown_3pct"
@@ -671,12 +681,12 @@ def run_strategy(
                 )
                 deferred_initial_notional = 0.0
 
-        if name in {"triggered_plan", "triggered_plan_with_margin", "enhanced_overheat_plan"} and active_i > 0 and trigger_index < len(principal_tranches):
+        if base_strategy in {"triggered_plan", "enhanced_overheat_plan"} and active_i > 0 and trigger_index < len(principal_tranches):
             tranche = principal_tranches[trigger_index]
             trigger_name = None
             if -drawdown >= tranche["drawdown"]:
                 trigger_name = tranche["drawdown_trigger"]
-            elif active_i >= tranche["fallback_day"] and (name != "enhanced_overheat_plan" or not portfolio_is_overheated(all_prices, dates, i)):
+            elif active_i >= tranche["fallback_day"] and (base_strategy != "enhanced_overheat_plan" or not portfolio_is_overheated(all_prices, dates, i)):
                 trigger_name = tranche["time_trigger"]
 
             if trigger_name and portfolio.invested < principal_cap - 1:
@@ -696,15 +706,15 @@ def run_strategy(
                 )
                 trigger_index += 1
 
-        if name == "monthly_dca" and day in first_by_month[1:] and portfolio.invested < principal_cap - 1:
+        if base_strategy == "monthly_dca" and day in first_by_month[1:] and portfolio.invested < principal_cap - 1:
             buy_amount = min(principal_cap * 0.20, principal_cap - portfolio.invested)
             buy_target_notional(portfolio, prices, buy_amount, "monthly_first_trading_day_dca", day, logs, principal_cap, name)
 
-        if name == "one_shot_full" and active_i == 0 and portfolio.invested < principal_cap - 1:
+        if base_strategy == "one_shot_full" and active_i == 0 and portfolio.invested < principal_cap - 1:
             buy_amount = principal_cap - portfolio.invested
             buy_target_notional(portfolio, prices, buy_amount, "one_shot_remaining_60pct_benchmark", day, logs, principal_cap, name)
 
-        if name == "triggered_plan_with_margin" and portfolio.invested >= principal_cap - 1:
+        if use_margin and market_value_only(portfolio, prices) > 0:
             active_margin_return = margin_lot_return(portfolio, prices)
             if portfolio.margin_used > 0 and active_margin_return <= -0.08:
                 margin_paused = True
@@ -726,8 +736,8 @@ def run_strategy(
                     buy_margin_notional(portfolio, prices, principal_cap * tranche_ratio, trigger_name, day, i, logs, principal_cap, name)
                     margin_index += 1
 
-        if day in month_ends and name != "one_shot_full" and portfolio.invested >= principal_cap - 1:
-            if name == "triggered_plan_with_margin" and portfolio.margin_used > 0:
+        if day in month_ends and base_strategy != "one_shot_full" and portfolio.invested >= principal_cap - 1:
+            if use_margin and portfolio.margin_used > 0:
                 pass
             else:
                 rebalance_month_end(portfolio, prices, day, logs, principal_cap, name)
@@ -759,6 +769,8 @@ def run_strategy(
     market_value = nav_rows[-1]["market_value"]
     summary = {
         "strategy": name,
+        "base_strategy": base_strategy,
+        "margin_overlay": "with_margin" if use_margin else "cash_only",
         "start_date": nav_rows[0]["date"],
         "end_date": dates[-1],
         "principal_cap": round(principal_cap, 2),
@@ -817,7 +829,8 @@ def main() -> int:
             raise RuntimeError(f"No trading date on or after strategy start {strategy_start}")
         start_index = candidates[0]
 
-    strategies = ["triggered_plan", "triggered_plan_with_margin", "enhanced_overheat_plan", "monthly_dca", "one_shot_full"]
+    base_strategies = ["triggered_plan", "enhanced_overheat_plan", "monthly_dca", "one_shot_full"]
+    strategies = [f"{strategy}_{overlay}" for strategy in base_strategies for overlay in ("cash", "margin")]
     all_nav: list[dict] = []
     all_logs: list[dict] = []
     summaries: list[dict] = []

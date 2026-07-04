@@ -1,6 +1,9 @@
-strategy,start_date,end_date,principal_cap,ending_total_value,ending_market_value,ending_cash,ending_margin_used,ending_principal_invested,return_on_principal_cap,return_on_invested_principal,max_drawdown,trade_count
-triggered_plan,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
-triggered_plan_with_margin,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
-enhanced_overheat_plan,2026-07-03,2026-07-03,400000,400000.0,74000.0,326000.0,0.0,74000.0,0.0,0.0,0.0,5
-monthly_dca,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
-one_shot_full,2026-07-03,2026-07-03,400000,400000.0,400000.0,0.0,0.0,400000.0,0.0,0.0,0.0,10
+strategy,base_strategy,margin_overlay,start_date,end_date,principal_cap,ending_total_value,ending_market_value,ending_cash,ending_margin_used,ending_principal_invested,return_on_principal_cap,return_on_invested_principal,max_drawdown,trade_count
+triggered_plan_cash,triggered_plan,cash_only,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
+triggered_plan_margin,triggered_plan,with_margin,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
+enhanced_overheat_plan_cash,enhanced_overheat_plan,cash_only,2026-07-03,2026-07-03,400000,400000.0,74000.0,326000.0,0.0,74000.0,0.0,0.0,0.0,5
+enhanced_overheat_plan_margin,enhanced_overheat_plan,with_margin,2026-07-03,2026-07-03,400000,400000.0,74000.0,326000.0,0.0,74000.0,0.0,0.0,0.0,5
+monthly_dca_cash,monthly_dca,cash_only,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
+monthly_dca_margin,monthly_dca,with_margin,2026-07-03,2026-07-03,400000,400000.0,160000.0,240000.0,0.0,160000.0,0.0,0.0,0.0,5
+one_shot_full_cash,one_shot_full,cash_only,2026-07-03,2026-07-03,400000,400000.0,400000.0,0.0,0.0,400000.0,0.0,0.0,0.0,10
+one_shot_full_margin,one_shot_full,with_margin,2026-07-03,2026-07-03,400000,400000.0,400000.0,0.0,0.0,400000.0,0.0,0.0,0.0,10

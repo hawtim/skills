@@ -1,6 +1,9 @@
-strategy,start_date,end_date,principal_cap,ending_total_value,ending_market_value,ending_cash,ending_margin_used,ending_principal_invested,return_on_principal_cap,return_on_invested_principal,max_drawdown,trade_count
-triggered_plan,2026-01-05,2026-07-03,400000,589255.41,589255.41,0.0,0.0,400000.0,0.473139,0.473139,-0.123622,20
-triggered_plan_with_margin,2026-01-05,2026-07-03,400000,595654.49,589255.41,6399.09,0.0,400000.0,0.489136,0.489136,-0.123622,35
-enhanced_overheat_plan,2026-01-05,2026-07-03,400000,589255.41,589255.41,0.0,0.0,400000.0,0.473139,0.473139,-0.123622,20
-monthly_dca,2026-01-05,2026-07-03,400000,598585.68,598585.68,0.0,0.0,400000.0,0.496464,0.496464,-0.103209,20
-one_shot_full,2026-01-05,2026-07-03,400000,598649.33,598649.33,0.0,0.0,400000.0,0.496623,0.496623,-0.144098,10
+strategy,base_strategy,margin_overlay,start_date,end_date,principal_cap,ending_total_value,ending_market_value,ending_cash,ending_margin_used,ending_principal_invested,return_on_principal_cap,return_on_invested_principal,max_drawdown,trade_count
+triggered_plan_cash,triggered_plan,cash_only,2026-01-05,2026-07-03,400000,589255.41,589255.41,0.0,0.0,400000.0,0.473139,0.473139,-0.123622,20
+triggered_plan_margin,triggered_plan,with_margin,2026-01-05,2026-07-03,400000,595654.49,589255.41,6399.09,0.0,400000.0,0.489136,0.489136,-0.123622,35
+enhanced_overheat_plan_cash,enhanced_overheat_plan,cash_only,2026-01-05,2026-07-03,400000,589255.41,589255.41,0.0,0.0,400000.0,0.473139,0.473139,-0.123622,20
+enhanced_overheat_plan_margin,enhanced_overheat_plan,with_margin,2026-01-05,2026-07-03,400000,595654.49,589255.41,6399.09,0.0,400000.0,0.489136,0.489136,-0.123622,35
+monthly_dca_cash,monthly_dca,cash_only,2026-01-05,2026-07-03,400000,598585.68,598585.68,0.0,0.0,400000.0,0.496464,0.496464,-0.103209,20
+monthly_dca_margin,monthly_dca,with_margin,2026-01-05,2026-07-03,400000,604984.77,598585.68,6399.09,0.0,400000.0,0.512462,0.512462,-0.102548,35
+one_shot_full_cash,one_shot_full,cash_only,2026-01-05,2026-07-03,400000,598649.33,598649.33,0.0,0.0,400000.0,0.496623,0.496623,-0.144098,10
+one_shot_full_margin,one_shot_full,with_margin,2026-01-05,2026-07-03,400000,604754.18,598649.33,6104.86,0.0,400000.0,0.511885,0.511885,-0.149274,25

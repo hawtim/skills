@@ -1,0 +1,7 @@
+interface:
+  display_name: "TQQQ Long-Term Rolling Strategy"
+  short_description: "按触发词执行TQQQ长期滚动策略"
+  default_prompt: "Use $tqqq-long-term-rolling-strategy to review or backtest the TQQQ long-term rolling strategy."
+
+policy:
+  allow_implicit_invocation: false

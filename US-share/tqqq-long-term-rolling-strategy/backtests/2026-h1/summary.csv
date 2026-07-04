@@ -1,0 +1,4 @@
+strategy,start_date,end_date,principal,ending_total_value,total_return,max_drawdown,ending_cash,ending_dividend_cash,ending_hedge_notional,ending_tqqq_weight,trade_count,dividend_events
+tqqq_rolling_strategy,2026-01-02,2026-06-26,100000.0,118511.93,0.185119,-0.180745,61.81,0.0,0.0,0.516201,15,10
+static_50_25_25,2026-01-02,2026-06-26,100000.0,120761.25,0.207612,-0.19366,1523.56,1523.56,0.0,0.568109,3,10
+tqqq_buy_hold,2026-01-02,2026-06-26,100000.0,137211.08,0.372111,-0.335962,0.0,0.0,0.0,1.0,1,0

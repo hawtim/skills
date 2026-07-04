@@ -1,0 +1,7 @@
+interface:
+  display_name: "Weekly Momentum Report"
+  short_description: "生成美股每周动量分析邮件和归档"
+  default_prompt: "Use $weekly-momentum-report to generate this week's U.S. market momentum report, email it, and archive the report."
+
+policy:
+  allow_implicit_invocation: false

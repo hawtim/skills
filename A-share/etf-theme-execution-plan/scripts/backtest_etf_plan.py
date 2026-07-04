@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Fetch ETF daily data from Eastmoney and backtest the ETF theme plan.
+"""Fetch ETF daily data and backtest the ETF theme plan.
 
 Assumptions:
 - Daily close execution.
 - Fractional shares are allowed for clean allocation math.
 - Fees, slippage, interest, and taxes are ignored.
 - Subjective plan language is converted into deterministic drawdown triggers.
+- The enhanced strategy keeps unspent overheat-filtered cash instead of
+  redistributing it to other ETFs.
 """
 
 from __future__ import annotations
@@ -29,6 +31,14 @@ ETFS = [
     {"code": "159516", "name": "半导体设备材料ETF国泰", "secid": "0.159516", "yahoo": "159516.SZ", "tencent": "sz159516", "weight": 0.15, "lower": 0.10, "upper": 0.20},
     {"code": "159538", "name": "信创ETF富国", "secid": "0.159538", "yahoo": "159538.SZ", "tencent": "sz159538", "weight": 0.10, "lower": 0.07, "upper": 0.13},
 ]
+
+FUTU_CODES = {
+    "159530": "SZ.159530",
+    "159994": "SZ.159994",
+    "515260": "SH.515260",
+    "159516": "SZ.159516",
+    "159538": "SZ.159538",
+}
 
 
 @dataclass
@@ -175,6 +185,66 @@ def fetch_tencent_kline(symbol: str, begin: str, end: str) -> list[dict[str, str
     return adjust_yahoo_price_discontinuities(rows)
 
 
+def fetch_futu_kline(code: str, begin: str, end: str) -> list[dict[str, str | float]]:
+    try:
+        from futu import AuType, KLType, OpenQuoteContext, RET_OK
+        import pandas as pd
+    except ImportError as exc:
+        raise RuntimeError("Futu SDK is not installed. Install futu-api or choose another source.") from exc
+
+    futu_code = FUTU_CODES[code]
+    begin_dash = f"{begin[:4]}-{begin[4:6]}-{begin[6:]}"
+    end_dash = f"{end[:4]}-{end[4:6]}-{end[6:]}"
+    quote_ctx = OpenQuoteContext(host="127.0.0.1", port=11111)
+    try:
+        page_req_key = None
+        frames = []
+        while True:
+            ret, data, page_req_key = quote_ctx.request_history_kline(
+                futu_code,
+                start=begin_dash,
+                end=end_dash,
+                ktype=KLType.K_DAY,
+                autype=AuType.QFQ,
+                max_count=1000,
+                page_req_key=page_req_key,
+            )
+            if ret != RET_OK:
+                raise RuntimeError(f"Futu returned error for {futu_code}: {data}")
+            frames.append(data)
+            if page_req_key is None:
+                break
+    finally:
+        quote_ctx.close()
+
+    rows = []
+    if not frames:
+        return rows
+    data = pd.concat(frames, ignore_index=True)
+    for _, row in data.iterrows():
+        close = float(row["close"])
+        previous_close = float(row.get("last_close", 0) or 0)
+        change = close - previous_close if previous_close else ""
+        pct_change = change / previous_close * 100 if previous_close else ""
+        rows.append(
+            {
+                "date": str(row["time_key"])[:10],
+                "open": float(row["open"]),
+                "close": close,
+                "high": float(row["high"]),
+                "low": float(row["low"]),
+                "volume": float(row.get("volume", "")),
+                "amount": float(row.get("turnover", "")),
+                "adj_close": close,
+                "amplitude_pct": "",
+                "pct_change": pct_change,
+                "change": change,
+                "turnover_pct": float(row.get("turnover_rate", "")) if row.get("turnover_rate", "") != "" else "",
+            }
+        )
+    return rows
+
+
 def adjust_yahoo_price_discontinuities(rows: list[dict[str, str | float]]) -> list[dict[str, str | float]]:
     """Continuity-adjust Yahoo ETF prices when split-like jumps are unadjusted.
 
@@ -234,6 +304,47 @@ def prices_on(all_prices: dict[str, dict[str, dict]], day: str) -> dict[str, flo
     return {code: all_prices[code][day]["close"] for code in all_prices}
 
 
+def trailing_return(all_prices: dict[str, dict[str, dict]], dates: list[str], code: str, index: int, lookback: int) -> float | None:
+    if index < lookback:
+        return None
+    current = float(all_prices[code][dates[index]]["close"])
+    previous = float(all_prices[code][dates[index - lookback]]["close"])
+    if previous <= 0:
+        return None
+    return current / previous - 1
+
+
+def composite_return(
+    all_prices: dict[str, dict[str, dict]],
+    dates: list[str],
+    index: int,
+    lookback: int,
+) -> float | None:
+    if index < lookback:
+        return None
+    weighted_return = 0.0
+    for etf in ETFS:
+        code = etf["code"]
+        current = float(all_prices[code][dates[index]]["close"])
+        previous = float(all_prices[code][dates[index - lookback]]["close"])
+        if previous <= 0:
+            return None
+        weighted_return += (current / previous - 1) * etf["weight"]
+    return weighted_return
+
+
+def portfolio_is_overheated(all_prices: dict[str, dict[str, dict]], dates: list[str], index: int) -> bool:
+    comp_60d = composite_return(all_prices, dates, index, 60)
+    if comp_60d is not None and comp_60d > 0.40:
+        return True
+    return any((trailing_return(all_prices, dates, etf["code"], index, 20) or 0.0) > 0.25 for etf in ETFS)
+
+
+def etf_is_overheated(all_prices: dict[str, dict[str, dict]], dates: list[str], code: str, index: int) -> bool:
+    ret_20d = trailing_return(all_prices, dates, code, index, 20)
+    return ret_20d is not None and ret_20d > 0.25
+
+
 def value_portfolio(portfolio: Portfolio, prices: dict[str, float]) -> float:
     return portfolio.cash + sum(portfolio.shares.get(code, 0.0) * price for code, price in prices.items()) - portfolio.margin_used
 
@@ -258,9 +369,22 @@ def buy_target_notional(
     logs: list[dict],
     principal_cap: float,
     strategy: str,
+    all_prices: dict[str, dict[str, dict]] | None = None,
+    dates: list[str] | None = None,
+    day_index: int | None = None,
 ) -> None:
     for etf in ETFS:
         amount = notional * etf["weight"]
+        notes = "按目标权重买入"
+        if (
+            strategy == "enhanced_overheat_plan"
+            and all_prices is not None
+            and dates is not None
+            and day_index is not None
+            and etf_is_overheated(all_prices, dates, etf["code"], day_index)
+        ):
+            amount *= 0.50
+            notes = "过热过滤：近20日涨幅超过25%，本次只买目标金额的一半，剩余现金保留"
         if amount <= 0:
             continue
         code = etf["code"]
@@ -280,7 +404,7 @@ def buy_target_notional(
                 "amount": round(amount, 2),
                 "principal_cap": round(principal_cap, 2),
                 "total_principal_invested_after_trade": round(portfolio.invested, 2),
-                "notes": "按目标权重买入",
+                "notes": notes,
             }
         )
 
@@ -474,12 +598,13 @@ def run_strategy(
     dates: list[str],
     all_prices: dict[str, dict[str, dict]],
     principal_cap: float,
+    start_index: int = 0,
 ) -> tuple[list[dict], list[dict], dict]:
     portfolio = Portfolio(cash=principal_cap, shares={etf["code"]: 0.0 for etf in ETFS}, margin_lots=[])
     nav_rows: list[dict] = []
     logs: list[dict] = []
     month_ends = month_end_dates(dates)
-    first_by_month = first_trading_dates_by_month(dates)
+    first_by_month = first_trading_dates_by_month(dates[start_index:])
     principal_tranches = [
         {"drawdown": 0.03, "fallback_day": 5, "pct": 0.20, "drawdown_trigger": "drawdown_3pct_principal_add", "time_trigger": "time_5_trading_days_principal_add"},
         {"drawdown": 0.08, "fallback_day": 20, "pct": 0.20, "drawdown_trigger": "drawdown_8pct_principal_add", "time_trigger": "time_20_trading_days_principal_add"},
@@ -490,35 +615,92 @@ def run_strategy(
     margin_index = 0
     margin_reduced_once = False
     margin_paused = False
+    deferred_initial_notional = 0.0
 
     for i, day in enumerate(dates):
+        if i < start_index:
+            continue
+        active_i = i - start_index
         prices = prices_on(all_prices, day)
 
-        if i == 0:
-            buy_target_notional(portfolio, prices, principal_cap * 0.40, "initial_40pct_build", day, logs, principal_cap, name)
+        if active_i == 0:
+            initial_notional = principal_cap * 0.40
+            trigger = "initial_40pct_build"
+            if name == "enhanced_overheat_plan" and portfolio_is_overheated(all_prices, dates, i):
+                initial_notional = principal_cap * 0.20
+                deferred_initial_notional = principal_cap * 0.20
+                trigger = "initial_20pct_build_overheat_filter"
+            buy_target_notional(
+                portfolio,
+                prices,
+                initial_notional,
+                trigger,
+                day,
+                logs,
+                principal_cap,
+                name,
+                all_prices=all_prices,
+                dates=dates,
+                day_index=i,
+            )
 
         total_value = value_portfolio(portfolio, prices)
         portfolio.high_watermark = max(portfolio.high_watermark, total_value)
         drawdown = 0.0 if portfolio.high_watermark <= 0 else total_value / portfolio.high_watermark - 1
 
-        if name in {"triggered_plan", "triggered_plan_with_margin"} and i > 0 and trigger_index < len(principal_tranches):
+        if name == "enhanced_overheat_plan" and deferred_initial_notional > 0 and active_i > 0:
+            trigger_name = None
+            if -drawdown >= 0.03:
+                trigger_name = "deferred_initial_half_drawdown_3pct"
+            elif active_i >= 5 and not portfolio_is_overheated(all_prices, dates, i):
+                trigger_name = "deferred_initial_half_after_5_days_overheat_cleared"
+            if trigger_name:
+                buy_amount = min(deferred_initial_notional, principal_cap - portfolio.invested)
+                buy_target_notional(
+                    portfolio,
+                    prices,
+                    buy_amount,
+                    trigger_name,
+                    day,
+                    logs,
+                    principal_cap,
+                    name,
+                    all_prices=all_prices,
+                    dates=dates,
+                    day_index=i,
+                )
+                deferred_initial_notional = 0.0
+
+        if name in {"triggered_plan", "triggered_plan_with_margin", "enhanced_overheat_plan"} and active_i > 0 and trigger_index < len(principal_tranches):
             tranche = principal_tranches[trigger_index]
             trigger_name = None
             if -drawdown >= tranche["drawdown"]:
                 trigger_name = tranche["drawdown_trigger"]
-            elif i >= tranche["fallback_day"]:
+            elif active_i >= tranche["fallback_day"] and (name != "enhanced_overheat_plan" or not portfolio_is_overheated(all_prices, dates, i)):
                 trigger_name = tranche["time_trigger"]
 
             if trigger_name and portfolio.invested < principal_cap - 1:
                 buy_amount = min(principal_cap * tranche["pct"], principal_cap - portfolio.invested)
-                buy_target_notional(portfolio, prices, buy_amount, trigger_name, day, logs, principal_cap, name)
+                buy_target_notional(
+                    portfolio,
+                    prices,
+                    buy_amount,
+                    trigger_name,
+                    day,
+                    logs,
+                    principal_cap,
+                    name,
+                    all_prices=all_prices,
+                    dates=dates,
+                    day_index=i,
+                )
                 trigger_index += 1
 
         if name == "monthly_dca" and day in first_by_month[1:] and portfolio.invested < principal_cap - 1:
             buy_amount = min(principal_cap * 0.20, principal_cap - portfolio.invested)
             buy_target_notional(portfolio, prices, buy_amount, "monthly_first_trading_day_dca", day, logs, principal_cap, name)
 
-        if name == "one_shot_full" and i == 0 and portfolio.invested < principal_cap - 1:
+        if name == "one_shot_full" and active_i == 0 and portfolio.invested < principal_cap - 1:
             buy_amount = principal_cap - portfolio.invested
             buy_target_notional(portfolio, prices, buy_amount, "one_shot_remaining_60pct_benchmark", day, logs, principal_cap, name)
 
@@ -577,7 +759,7 @@ def run_strategy(
     market_value = nav_rows[-1]["market_value"]
     summary = {
         "strategy": name,
-        "start_date": dates[0],
+        "start_date": nav_rows[0]["date"],
         "end_date": dates[-1],
         "principal_cap": round(principal_cap, 2),
         "ending_total_value": round(end_value, 2),
@@ -597,8 +779,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--begin", default="20260101")
     parser.add_argument("--end", default="20260630")
+    parser.add_argument("--strategy-start", default=None, help="Optional strategy start date within fetched data, YYYYMMDD or YYYY-MM-DD. Earlier data is used only for overheat lookback.")
     parser.add_argument("--principal", type=float, default=400000)
-    parser.add_argument("--source", choices=["yahoo", "tencent", "eastmoney"], default="yahoo")
+    parser.add_argument("--source", choices=["yahoo", "tencent", "eastmoney", "futu"], default="yahoo")
     parser.add_argument("--out-dir", default="A-share/etf-theme-execution-plan/backtests/h1-2026")
     args = parser.parse_args()
 
@@ -611,6 +794,8 @@ def main() -> int:
             rows = fetch_eastmoney_kline(etf["secid"], args.begin, args.end)
         elif args.source == "tencent":
             rows = fetch_tencent_kline(etf["tencent"], args.begin, args.end)
+        elif args.source == "futu":
+            rows = fetch_futu_kline(etf["code"], args.begin, args.end)
         else:
             rows = fetch_yahoo_chart(etf["yahoo"], args.begin, args.end)
         if not rows:
@@ -622,13 +807,22 @@ def main() -> int:
     common_dates = sorted(set.intersection(*(set(rows.keys()) for rows in all_prices.values())))
     if not common_dates:
         raise RuntimeError("No common trading dates across ETFs")
+    start_index = 0
+    if args.strategy_start:
+        strategy_start = args.strategy_start
+        if len(strategy_start) == 8 and "-" not in strategy_start:
+            strategy_start = f"{strategy_start[:4]}-{strategy_start[4:6]}-{strategy_start[6:]}"
+        candidates = [i for i, day in enumerate(common_dates) if day >= strategy_start]
+        if not candidates:
+            raise RuntimeError(f"No trading date on or after strategy start {strategy_start}")
+        start_index = candidates[0]
 
-    strategies = ["triggered_plan", "triggered_plan_with_margin", "monthly_dca", "one_shot_full"]
+    strategies = ["triggered_plan", "triggered_plan_with_margin", "enhanced_overheat_plan", "monthly_dca", "one_shot_full"]
     all_nav: list[dict] = []
     all_logs: list[dict] = []
     summaries: list[dict] = []
     for strategy in strategies:
-        nav, logs, summary = run_strategy(strategy, common_dates, all_prices, args.principal)
+        nav, logs, summary = run_strategy(strategy, common_dates, all_prices, args.principal, start_index=start_index)
         all_nav.extend(nav)
         all_logs.extend(logs)
         summaries.append(summary)

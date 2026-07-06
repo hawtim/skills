@@ -1,0 +1,23 @@
+Category,ETF,ETF Name,Holdings As Of,Holding Count,Status,Source URL
+Communication Service,XLC,State Street Communication Services Select Sector SPDR ETF,02-Jul-2026,26,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlc.xlsx
+Consumer Discretionary,XLY,State Street Consumer Discretionary Select Sector SPDR ETF,02-Jul-2026,50,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xly.xlsx
+Consumer Staples,XLP,State Street Consumer Staples Select Sector SPDR ETF,02-Jul-2026,38,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlp.xlsx
+Energy,XLE,State Street Energy Select Sector SPDR ETF,02-Jul-2026,24,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xle.xlsx
+Energy,XOP,State Street SPDR S&P Oil & Gas Exploration & Production ETF,02-Jul-2026,54,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xop.xlsx
+Finance,XLF,State Street Financial Select Sector SPDR ETF,02-Jul-2026,80,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlf.xlsx
+Finance,KRE,State Street SPDR S&P Regional Banking ETF,02-Jul-2026,161,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-kre.xlsx
+Finance,KBE,State Street SPDR S&P Bank ETF,02-Jul-2026,104,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-kbe.xlsx
+Finance,KIE,State Street SPDR S&P Insurance ETF,02-Jul-2026,55,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-kie.xlsx
+Healthcare,XLV,State Street Health Care Select Sector SPDR ETF,02-Jul-2026,63,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlv.xlsx
+Healthcare,XBI,State Street SPDR S&P Biotech ETF,02-Jul-2026,160,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xbi.xlsx
+Healthcare,XHE,State Street SPDR S&P Health Care Equipment ETF,02-Jul-2026,70,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xhe.xlsx
+Healthcare,XPH,State Street SPDR S&P Pharmaceuticals ETF,02-Jul-2026,66,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xph.xlsx
+Industrials,XLI,State Street Industrial Select Sector SPDR ETF,02-Jul-2026,84,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xli.xlsx
+Industrials,ROKT,State Street SPDR S&P Kensho Final Frontiers ETF,02-Jul-2026,38,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-rokt.xlsx
+Materials,XLB,State Street Materials Select Sector SPDR ETF,02-Jul-2026,29,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlb.xlsx
+Materials,XME,State Street SPDR S&P Metals & Mining ETF,02-Jul-2026,41,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xme.xlsx
+Real Estate,XLRE,State Street Real Estate Select Sector SPDR ETF,02-Jul-2026,34,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlre.xlsx
+Technology,XLK,State Street Technology Select Sector SPDR ETF,02-Jul-2026,77,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlk.xlsx
+Utilities,XLU,State Street Utilities Select Sector SPDR ETF,02-Jul-2026,34,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xlu.xlsx
+Consumer Staples,XRT,State Street SPDR S&P Retail ETF,02-Jul-2026,77,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xrt.xlsx
+Consumer Discretionary,XHB,State Street SPDR S&P Homebuilders ETF,02-Jul-2026,36,OK,https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xhb.xlsx

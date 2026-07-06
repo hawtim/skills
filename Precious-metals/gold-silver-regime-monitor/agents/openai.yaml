@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gold & Silver Regime Monitor"
+  short_description: "Track precious metals regime and daily action"
+  default_prompt: "Use $gold-silver-regime-monitor to generate today's gold and silver regime monitoring report."

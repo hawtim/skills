@@ -1,0 +1,38 @@
+{
+  "action": "NO_TRADE",
+  "active_weight": 0,
+  "as_of": "2026-07-07",
+  "core_target_weight": 0.05,
+  "current_tactical_weight": 0.0,
+  "data_ages": {
+    "cot_days": null,
+    "gld_holdings_days": null,
+    "global_etf_flow_days": null,
+    "price_days": null,
+    "real_yield_days": null,
+    "usd_days": null
+  },
+  "data_status": "FAIL",
+  "error": "No usable gold price source. xauusd: Stooq xauusd returned only 0 usable points; gc.f: Stooq gc.f returned only 0 usable points; gld.us: Stooq gld.us returned only 0 usable points",
+  "execution_action": "DATA_INVALID_NO_EXECUTION",
+  "execution_blocked": true,
+  "flow_score": 0,
+  "generated_at": "2026-07-07T14:30:00+08:00",
+  "hard_veto": false,
+  "hard_vetoes": [],
+  "macro_score": 0,
+  "proposed_trade_weight": 0.0,
+  "reason_codes": [
+    "CRITICAL_DATA_FETCH_FAILED"
+  ],
+  "regime": "DATA_INVALID",
+  "risk_score": 0,
+  "score": 0,
+  "score_change_1d": null,
+  "sources": {
+    "planned": "FRED official CSV endpoints and Stooq public daily CSV"
+  },
+  "tactical_target_weight": 0.0,
+  "technical_score": 0,
+  "timezone": "Asia/Shanghai"
+}

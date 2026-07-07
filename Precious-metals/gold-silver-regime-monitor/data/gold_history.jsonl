@@ -1,1 +1,1 @@
-{"action": "NO_TRADE", "as_of": "2026-07-07", "data_status": "FAIL", "flow_score": 0, "generated_at": "2026-07-07T14:30:00+08:00", "macro_score": 0, "regime": "DATA_INVALID", "risk_score": 0, "score": 0, "tactical_target_weight": 0.0, "technical_score": 0}
+{"action": "EXIT_TACTICAL", "as_of": "2026-07-07", "data_status": "DEGRADED", "flow_score": 0, "generated_at": "2026-07-07T14:30:00+08:00", "macro_score": 5, "regime": "EXIT_TACTICAL", "risk_score": 0, "score": 25, "tactical_target_weight": 0.0, "technical_score": 15}

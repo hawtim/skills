@@ -1,0 +1,7 @@
+interface:
+  display_name: "LEI Invest"
+  short_description: "Maintain LEI investing principles."
+  default_prompt: "Use $lei-invest to update LEI investing principles from the latest TheMarketMemo Daily Report."
+
+policy:
+  allow_implicit_invocation: true

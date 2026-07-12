@@ -1,120 +1,120 @@
-# LEI Investment Principles
+# LEI 投资原则库
 
-This reference summarizes LEI/TheMarketMemo's recurring U.S. equity investment thinking extracted from TheMarketMemo Daily Report emails. It separates evidence-backed principles from Codex synthesis.
+本文件从 TheMarketMemo Daily Report 邮件中持续提炼 LEI / TheMarketMemo 关于美股投资的重复性思考。维护时要区分三层内容：日报中的事实、LEI 的明确观点、以及 Codex 对这些观点的归纳。
 
-## 1. U.S. Equities Are Enterprise Assets, Not Government Debt
+## 1. 美股是企业资产，不等同于美国政府债务
 
-LEI separates U.S. corporate equity from U.S. sovereign fiscal risk. The investor buying U.S. stocks is buying ownership in leading companies with moats, free cash flow, pricing power, and global revenue exposure, not directly buying government debt.
+LEI 将美国企业股权与美国主权财政风险分开看待。买入美股，本质上买的是优秀上市公司的股权、护城河、自由现金流、定价权和全球收入暴露，而不是直接买入美国政府债务。
 
-Evidence:
+证据：
 
-- `2026-07-10`: Debt-vs-equity post argues that U.S. government debt and U.S. equities are separate issues; equity represents enterprise assets and corporate earning power.
+- `2026-07-10`：债务与美股长帖明确提出，美债和美股是两个不同议题；股票代表企业资产和企业盈利能力。
 
-Practical use:
+使用方式：
 
-- Do not treat rising U.S. debt alone as a sufficient reason to abandon U.S. equities.
-- Re-anchor analysis in company/index earning power, liquidity, rule-of-law protection, and innovation leadership.
+- 不要仅因为美国债务上升，就把它当作放弃美股的充分理由。
+- 分析时重新锚定企业/指数的盈利能力、流动性、法治保护和创新能力。
 
-## 2. Equity Is A Hedge Against Fiat Debasement
+## 2. 股权资产是对抗法币贬值的工具
 
-LEI frames quality U.S. equities as a defense against long-term inflation and currency debasement because strong companies can pass through costs and preserve real value better than cash or fixed income.
+LEI 将优质美股视为长期通胀和货币贬值环境下的防御资产。逻辑是强企业能够转嫁成本、维持真实购买力，而现金和固定收益更容易被通胀侵蚀。
 
-Evidence:
+证据：
 
-- `2026-07-10`: The report states that large deficits can be diluted by monetary expansion, while quality companies can raise prices and preserve real purchasing power.
+- `2026-07-10`：日报提到巨额赤字可能通过货币扩张被稀释，而优质企业可以通过提价维持真实价值。
 
-Practical use:
+使用方式：
 
-- Compare equities with cash and bonds in real-return terms, especially in high-debt or inflationary regimes.
-- Favor businesses and indexes with pricing power rather than nominal yield alone.
+- 在高债务或通胀环境中，要用实际回报视角比较股票、现金和债券。
+- 优先关注具备定价权的企业和指数，而不是只看名义收益率。
 
-## 3. U.S. Market Structure Still Has Global Capital Magnetism
+## 3. 美国市场仍具备全球资本吸引力
 
-LEI's macro frame is that global capital still lacks a better large-scale alternative to the U.S. because of liquidity, legal protections, financial-market depth, and AI-led innovation.
+LEI 的宏观框架认为，全球资本很难找到另一个能同时提供高流动性、法治保护、金融市场深度和 AI 创新能力的大型替代市场。
 
-Evidence:
+证据：
 
-- `2026-07-10`: The report cites foreign capital crossing policy uncertainty to pursue long-term U.S. opportunity, especially AI innovation.
+- `2026-07-10`：日报引用外资跨越政策不确定性、继续押注美国长期机会的观点，尤其强调 AI 创新。
 
-Practical use:
+使用方式：
 
-- Treat policy friction, tariffs, and labor-cost pressure as risks, but test whether they actually break the longer-term capital-flow thesis.
-- When comparing regions, require the alternative market to match U.S. liquidity, legal protection, innovation depth, and investable breadth.
+- 关税、劳动力成本和政策摩擦是风险，但要检验它们是否真的破坏了长期资本流入逻辑。
+- 比较区域市场时，替代市场必须同时满足流动性、法治、创新深度和可投资广度，才算真正可替代。
 
-## 4. Index Mechanisms Matter More Than Single-Stock Narratives
+## 4. 指数机制比单股叙事更重要
 
-LEI repeatedly favors mechanism-aware index exposure, especially QQQ, over trying to hand-pick individual winners. QQQ's constituent selection, weighting, and periodic rebalancing can help the index remain resilient even when many constituents weaken.
+LEI 反复强调机制化指数暴露，尤其是 QQQ，相比追逐单只赢家更稳健。QQQ 的成分选择、权重结构和定期调整机制，可以让指数在很多成分股走弱时仍保持韧性。
 
-Evidence:
+证据：
 
-- `2026-07-08`: QQQ had over 50% of constituents in technical bear markets, yet the index had not fallen as much as the median constituent.
-- `2026-07-11`: Mag7 stocks showed large drawdowns while QQQ was down only 3.28% from its referenced high.
-- `2026-07-12`: No new activity, but the report reinforced QQQ resilience versus Mag7 weakness.
+- `2026-07-08`：QQQ 超过 50% 的成分股进入技术性熊市，但指数本身并未像成分股中位数那样大幅下跌。
+- `2026-07-11`：Mag7 多只股票从高位大幅回撤，而 QQQ 仅下跌 3.28%。
+- `2026-07-12`：当日没有新发言，但日报再次强化了 QQQ 相对 Mag7 的韧性。
 
-Practical use:
+使用方式：
 
-- For investors without a strong stock-selection edge, prefer QQQ/TQQQ-style index frameworks over concentrated single-stock bets.
-- Analyze index mechanics, weights, and constituent rotation before concluding that headline index price reflects broad health.
+- 对没有明确选股优势的投资者，优先考虑 QQQ/TQQQ 这类指数框架，而不是高集中度单股下注。
+- 在判断指数健康度前，先检查指数机制、权重结构和成分股轮动，不要只看指数价格。
 
-## 5. Breadth Divergence Is A Key Risk Signal
+## 5. 市场广度背离是关键风险信号
 
-LEI treats market breadth as more informative than index price alone. A strong index can hide widespread technical weakness beneath the surface.
+LEI 认为市场广度比指数点位更有信息量。指数仍在高位时，内部可能已有大量股票明显走弱。
 
-Evidence:
+证据：
 
-- `2026-07-08`: More than 50% of QQQ constituents were more than 20% below recent highs.
-- `2026-07-09`: Technical bear-market shares were listed as SPY 36%, QQQ 52%, IWM 47%, and XLG 25%.
-- `2026-07-11`: Mag7 drawdowns contrasted with a relatively resilient QQQ.
+- `2026-07-08`：QQQ 超过 50% 的成分股较近期高点下跌超过 20%。
+- `2026-07-09`：日报列出技术性熊市比例：SPY 36%、QQQ 52%、IWM 47%、XLG 25%。
+- `2026-07-11`：Mag7 回撤与 QQQ 指数韧性形成对比。
 
-Practical use:
+使用方式：
 
-- Monitor the percentage of index constituents in technical bear markets.
-- Treat high-index/weak-breadth divergence as a warning that leadership may be narrow or that a rotation is underway.
-- Do not assume index resilience means constituent risk has disappeared.
+- 持续跟踪指数成分股中进入技术性熊市的比例。
+- 当指数高位但广度恶化时，要把它视为领导力狭窄或市场轮动的警示。
+- 不要因为指数没跌，就认定成分股风险已经消失。
 
-## 6. Leadership And Weight Support Need Monitoring
+## 6. 领导板块与权重支撑必须持续观察
 
-LEI's breadth work implies that index resilience depends on whether leadership groups and heavyweight stocks continue supporting the index. Semiconductor and AI-linked leaders deserve special attention.
+LEI 的广度框架隐含一个判断：指数韧性依赖领导板块和权重股能否继续支撑盘面。半导体和 AI 相关领导股尤其重要。
 
-Evidence:
+证据：
 
-- `2026-07-08`: The report notes community focus on leading semiconductor stocks.
-- `2026-07-09`: QQQ and IWM internal weakness contrasted with stronger mega-cap support.
-- `2026-07-11`: Discussion focused on whether non-Mag7 or heavyweight support could keep QQQ resilient.
+- `2026-07-08`：日报记录社区讨论重点落在领导的半导体板块。
+- `2026-07-09`：QQQ 和 IWM 内部走弱，但超大盘权重股相对支撑更强。
+- `2026-07-11`：讨论集中在非 Mag7 或权重股是否仍能托住 QQQ。
 
-Practical use:
+使用方式：
 
-- Watch whether leadership broadens, narrows, or transfers to new groups.
-- Treat a breakdown in leaders or weight support as a potential invalidation signal for benign consolidation.
+- 观察领导力是在扩散、收窄，还是转移到新板块。
+- 如果领导股或权重支撑破坏，要把它视为“良性整理”框架的潜在失效信号。
 
-## 7. Structural Consolidation Can Prepare The Next Uptrend
+## 7. 结构性整理可能是在为下一轮上涨蓄力
 
-LEI's NQ framework views some volatility as a cost-unification and chip-exchange process: moving averages converge, volatility falls, and the market prepares for a future advance if the structure remains intact.
+LEI 对 NQ 的技术结构框架认为，部分波动可以被理解为统一市场成本、进行筹码交换、让均线靠拢、降低波动率，并为未来上涨积蓄力量。
 
-Evidence:
+证据：
 
-- `2026-07-09`: The referenced NQ view described market movement around the 29K-31K area as unifying cost basis, allowing moving averages to converge, lowering volatility, and building energy for a future rise.
+- `2026-07-09`：日报引用此前 NQ 观点，认为 29K-31K 附近的波动是在统一成本、让均线靠拢、降低波动，并为未来上涨蓄力。
 
-Practical use:
+使用方式：
 
-- Distinguish healthy consolidation from structural breakdown.
-- Ask whether price action has broken the expected structure before changing the regime call.
+- 区分健康整理和结构破坏。
+- 在改变市场阶段判断前，先问价格行为是否已经破坏了预期结构。
 
-## 8. Use Practical Tools Instead Of Overfitting Indicators
+## 8. 使用实用工具，不迷信指标
 
-LEI favors direct, practical analysis over indicator worship. One explicit method is to hand QQQ holdings data to AI rather than rely only on canned indicators.
+LEI 倾向于直接、实用的数据分析，而不是过度崇拜传统指标。一个明确方法是把 QQQ 持仓明细交给 AI 分析，而不是只依赖现成指标。
 
-Evidence:
+证据：
 
-- `2026-07-08`: LEI replied that no indicator is needed; give QQQ holdings details to AI.
-- `2026-07-09`: This practical AI-assisted analysis idea was reinforced in discussion of breadth and holdings.
+- `2026-07-08`：LEI 回复“不需要指标，把 QQQ 的持股明细交给 AI”。
+- `2026-07-09`：在广度和持仓分析讨论中，这个 AI 辅助分析思路再次被强化。
 
-Practical use:
+使用方式：
 
-- Use AI or structured data tools to inspect holdings, weights, drawdowns, and leadership composition.
-- Keep indicators subordinate to the actual constituent and market-structure evidence.
+- 用 AI 或结构化数据工具检查持仓、权重、回撤和领导力构成。
+- 指标只能作为辅助，核心仍应回到成分股和市场结构证据。
 
-## Revision Watch
+## 修订观察
 
-- No direct contradiction has appeared in the 2026-07-08 through 2026-07-12 daily reports.
-- The main tension to monitor is whether breadth deterioration stays a healthy consolidation signal or becomes evidence of leadership failure and index-level breakdown.
+- 在 `2026-07-08` 至 `2026-07-12` 的日报中，尚未出现直接冲突的新原则。
+- 需要持续观察的核心张力是：广度恶化究竟仍属于健康整理，还是已经转化为领导力失效和指数级别破位。

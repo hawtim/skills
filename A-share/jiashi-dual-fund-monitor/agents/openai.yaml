@@ -1,0 +1,7 @@
+interface:
+  display_name: "嘉实双基金组合监控"
+  short_description: "按固定规则监控000043与017730 A双基金组合"
+  default_prompt: "使用 $jiashi-dual-fund-monitor 检查嘉实双基金组合并生成规则化监控报告。"
+
+policy:
+  allow_implicit_invocation: false

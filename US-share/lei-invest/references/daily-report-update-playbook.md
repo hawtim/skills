@@ -27,11 +27,12 @@ For each report, extract:
 
 ## Merge Rules
 
-- Update `lei-investment-principles.md` by theme, not by day.
+- Update `lei-investment-principles.md` in Chinese, by theme, not by day.
 - Add a new bullet only when the report contributes a distinct concept, evidence point, or caveat.
 - For repeated ideas, append the report date to the principle's evidence list.
 - Preserve contradictions under `Revision Watch`.
 - Keep `source-log.md` append-only except for fixing factual metadata mistakes.
+- Preserve source metadata exactly, but write principle names, synthesis, practical-use notes, and revision notes in Chinese.
 
 ## Automation Memory
 

@@ -1,0 +1,1 @@
+record_id,reported_at,trade_date,confirmation_date,account_label,action_type,trigger_type,fund_code,fund_name,share_class,side,confirmed_amount,confirmed_shares,confirmed_nav,fee,currency,total_invested_after_trade,position_cost_after_trade,position_shares_after_trade,notes,source

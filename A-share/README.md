@@ -85,7 +85,7 @@
 | 159516 | 15% | 10%-20% |
 | 159538 | 10% | 7%-13% |
 
-## 两个 Skill
+## 三个 Skill
 
 ### 1. `etf-theme-execution-plan`
 
@@ -138,6 +138,17 @@ ETF主题日报
 ```
 
 日报提示词模板见：[daily-report-prompt.md](./etf-theme-daily-report/references/daily-report-prompt.md)
+
+### 3. `a-share-macro-regime`
+
+位置：[a-share-macro-regime](./a-share-macro-regime)
+
+用途：
+
+- 每天 08:30 生成开盘前 A 股宏观交易环境报告。
+- 统一观察 A 股内部结构、人民币与流动性、金龙指数、KWEB/FXI/MCHI、YINN/YANG 和隔夜全球风险。
+- 输出五级风险姿态，并为后续个人持仓联动预留 `portfolio.json`。
+- 与美股宏观日报配套，通过自动化发送独立邮件。
 
 ## 回测结果
 

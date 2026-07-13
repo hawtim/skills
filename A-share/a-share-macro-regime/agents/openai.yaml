@@ -1,0 +1,7 @@
+interface:
+  display_name: "A-Share Macro Regime"
+  short_description: "每日生成A股宏观风险温度、离岸信号、政策事件与持仓联动邮件"
+  default_prompt: "Use $a-share-macro-regime to generate today's A-share macro regime report."
+
+policy:
+  allow_implicit_invocation: true

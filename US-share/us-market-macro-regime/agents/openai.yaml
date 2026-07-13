@@ -1,0 +1,7 @@
+interface:
+  display_name: "US Market Macro Regime"
+  short_description: "每日生成美股宏观风险温度、交易环境、事件风险与持仓联动邮件"
+  default_prompt: "Use $us-market-macro-regime to generate today's U.S. market macro regime report."
+
+policy:
+  allow_implicit_invocation: true

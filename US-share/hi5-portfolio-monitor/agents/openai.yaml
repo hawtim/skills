@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hi5 组合监控"
+  short_description: "核验 Hi5 交易、回测三日择时并生成每日决策监控"
+  default_prompt: "Use $hi5-portfolio-monitor to核验最新 Hi5 交易日志并生成今日择时监控。"

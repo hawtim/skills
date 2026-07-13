@@ -1,0 +1,211 @@
+{
+  "episodes": {
+    "2023-08-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "initial"
+    },
+    "2023-09-25": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2023-10-27": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-01-11": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-01-31": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-02-13": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-03-05": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-04-02": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-04-19": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-05-17": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-06-21": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-07-11": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-08-01": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "rebalance"
+    },
+    "2024-08-05": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-09-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-10-01": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-11-15": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2024-12-18": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-01-10": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-02-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-03-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-03-11": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-04-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-04-04": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-04-07": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-05-16": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-06-13": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-07-07": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-08-01": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "rebalance"
+    },
+    "2025-09-02": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-10-09": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-11-13": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2025-12-16": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-01-08": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-02-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-03-03": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-03-09": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-04-17": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-05-15": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-06-05": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring"
+    },
+    "2026-07-08": {
+      "first_seen_at": "2026-07-14T01:21:25+08:00",
+      "historical_backfill": true,
+      "campaign_type": "recurring",
+      "state": "WATCH_D3",
+      "last_updated_at": "2026-07-14T01:29:38+08:00"
+    }
+  }
+}

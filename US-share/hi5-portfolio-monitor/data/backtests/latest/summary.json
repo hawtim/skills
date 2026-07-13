@@ -1,0 +1,116 @@
+{
+  "rule_version": "1.0.0",
+  "portfolio": {
+    "as_of": "2026-07-13",
+    "holdings": {
+      "IWY": 678.0,
+      "RSP": 942.0,
+      "MOAT": 0.0,
+      "SPMO": 1502.0,
+      "VNQ": 1928.0,
+      "PFF": 5560.0
+    },
+    "buy_cost": 943953.9899999994,
+    "sell_proceeds": 175696.87,
+    "net_investment": 768257.1199999994,
+    "gross_dividends": 46945.84000000001,
+    "withholding_tax": -7041.589999999999,
+    "net_dividends": 39904.250000000015,
+    "sheet_date": "2026-07-10",
+    "sheet_market_value": 987183.9,
+    "independent_sheet_date_market_value": 987183.9148254395,
+    "independent_market_value": 977382.3573760986,
+    "author_total_value_formula": 1034129.74,
+    "author_formula_cagr": 0.10624991840752696,
+    "estimated_xirr": 0.14056475982264904,
+    "author_year_stats": {
+      "prior_year_end_mv": 813286.04,
+      "current_mv": 987183.9,
+      "market_value_growth": 173897.86,
+      "year_net_input": 80219.54,
+      "year_net_dividends": 7929.48,
+      "year_net_income": 101607.8
+    }
+  },
+  "transactions": 203,
+  "validated_transactions": 203,
+  "validation_rate_pct": 100.0,
+  "sheet_close_max_abs_diff_pct": 3.7821289211592557e-06,
+  "recurring_campaigns": 38,
+  "recurring_trades": 190,
+  "near_low_0_5_pct": 37.36842105263158,
+  "near_low_1_pct": 53.1578947368421,
+  "near_low_2_pct": 75.26315789473684,
+  "stage_high_proxy_pct": 21.05263157894737,
+  "stage_high_20d_n": 185,
+  "stage_high_20d_proxy_pct": 5.405405405405405,
+  "avg_gap_to_future_low_pct": 1.4410684210526317,
+  "median_gap_to_future_low_pct": 0.8600000000000001,
+  "future_lower_price_seen_pct": 81.05263157894737,
+  "avg_d1_vs_author_pct": 0.02839684210526315,
+  "avg_d4_vs_author_pct": 0.09811675675675677,
+  "d4_cheaper_pct": 42.16216216216216,
+  "avg_staged_vs_author_pct": 0.0860162162162162,
+  "staged_cheaper_pct": 55.13513513513514,
+  "rsp_rule_audit": {
+    "campaigns": 22,
+    "mechanical_campaigns": 21,
+    "matched_mechanical": 20,
+    "match_rate_pct": 95.23809523809524
+  },
+  "current_rsp_state": {
+    "as_of": "2026-07-13",
+    "month_change_pct": 0.75198139427477,
+    "minus1_trigger_date": "2026-07-08",
+    "minus5_trigger_date": null,
+    "third_friday": "2026-07-17",
+    "estimated_sessions_to_third_friday": 4,
+    "logged_campaigns_this_month": [
+      "2026-07-08"
+    ]
+  },
+  "by_symbol": {
+    "IWY": {
+      "n": 38,
+      "near_low_1_pct": 55.26315789473684,
+      "stage_high_proxy_pct": 21.05263157894737,
+      "avg_gap_to_low_pct": 1.528121052631579,
+      "avg_d4_vs_author_pct": 0.5172135135135135
+    },
+    "RSP": {
+      "n": 38,
+      "near_low_1_pct": 50.0,
+      "stage_high_proxy_pct": 21.05263157894737,
+      "avg_gap_to_low_pct": 1.3446421052631579,
+      "avg_d4_vs_author_pct": 0.04756216216216218
+    },
+    "SPMO": {
+      "n": 12,
+      "near_low_1_pct": 33.333333333333336,
+      "stage_high_proxy_pct": 25.0,
+      "avg_gap_to_low_pct": 1.7283083333333333,
+      "avg_d4_vs_author_pct": 0.04749090909090909
+    },
+    "VNQ": {
+      "n": 38,
+      "near_low_1_pct": 44.73684210526316,
+      "stage_high_proxy_pct": 26.31578947368421,
+      "avg_gap_to_low_pct": 1.901242105263158,
+      "avg_d4_vs_author_pct": -0.1506297297297297
+    },
+    "PFF": {
+      "n": 38,
+      "near_low_1_pct": 71.05263157894737,
+      "stage_high_proxy_pct": 13.157894736842104,
+      "avg_gap_to_low_pct": 0.7266763157894737,
+      "avg_d4_vs_author_pct": 0.06594324324324324
+    },
+    "MOAT": {
+      "n": 26,
+      "near_low_1_pct": 50.0,
+      "stage_high_proxy_pct": 23.076923076923077,
+      "avg_gap_to_low_pct": 1.6937461538461538,
+      "avg_d4_vs_author_pct": -0.005157692307692315
+    }
+  }
+}

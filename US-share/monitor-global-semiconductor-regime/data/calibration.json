@@ -1,0 +1,12 @@
+{
+  "rule_version": "1.0.0",
+  "updated_at": "2026-07-14T00:42:05.113548+08:00",
+  "production_thresholds": {
+    "bottom_watch": 40,
+    "tactical_entry": 60,
+    "trend_entry": 75
+  },
+  "matured_5d_samples": 0,
+  "shadow_threshold": null,
+  "note": "Production thresholds stay fixed until at least 30 matured observations."
+}

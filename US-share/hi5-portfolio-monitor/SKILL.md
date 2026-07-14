@@ -30,23 +30,33 @@ The script refreshes the public Google Sheet and independent Yahoo OHLC data, th
 - `data/history.jsonl`
 - `data/signal_ledger.json`
 
+The daily report is deliberately a plain-language execution card: latest author buy, per-ETF probability of a better price, whether the current episode triggered, and the exact target allocation band.
+
+## Intraday entry alert
+
+```bash
+python3 /Users/icemelon/Documents/invest/hawtim-skills/US-share/hi5-portfolio-monitor/scripts/check_entry_alerts.py
+```
+
+Run this during the US regular session. It checks Futu OpenD snapshots first and uses Yahoo as a fallback. It emits `ALERT` only when a newly observed D+0 to D+3 campaign first crosses 0.5%, 1%, or 2% below the author's price. It never places an order and never alerts historical backfill.
+
 ## Workflow
 
 1. Fetch the `Trades` and `Data` tabs. Preserve a source snapshot and hash before analysis.
 2. Rebuild positions from Buy/Sell rows; keep gross dividends and withholding tax separate.
 3. Validate each execution price against an independent unadjusted daily OHLC bar.
 4. Segment the 2023 initial build, annual August rebalances, and recurring purchases. Never apply today's rule retroactively.
-5. Evaluate future opportunity only over D+1 through D+3. Report 0.5%, 1%, and 2% near-low bands; do not call every miss a stage high.
-6. Compare the author's price with D+1 open, D+4 open, and a preregistered staged-entry policy. Keep opportunity cost visible.
+5. Evaluate future opportunity only over D+1 through D+3. Define a better price as at least 0.5% below the author and show the historical probability by ETF.
+6. Compare the author's price with future lows and the preregistered 0.5%, 1%, and 2% staged-entry policy. Keep opportunity cost visible.
 7. Preserve first-seen timestamps for new sheet rows. Historical rows imported on first run are backfill, not proof of contemporaneous publication.
 8. If sources are stale or price coverage falls below 95%, output `DATA_INSUFFICIENT / 不新增风险`.
 
 ## Decision contract
 
 - Lead with `今日许可`, latest disclosed buy, D-stage, and per-ETF action band.
-- Start with a 25% observation position only after a newly disclosed buy is detected; never infer that the user already holds it.
-- During D+1 to D+3, prefer prices at or below the author's execution or volatility-based limits.
-- On D+4, scale the remaining purchase down when price has risen; show the exact deployed fraction and invalidation conditions.
+- Do not buy merely because the author bought. Wait for the first live better-price band.
+- At 0.5% / 1% / 2% below the author, alert cumulative target allocation of 25% / 50% / 100%.
+- Close the watch after D+3. Do not emit a D+4 chase signal.
 - Separate the author's spreadsheet arithmetic, a cash-flow XIRR estimate, and unavailable TWR. Never present the author's `Total CAGR` as audited CAGR.
 - Never place a trade.
 

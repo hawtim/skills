@@ -1,0 +1,4 @@
+interface:
+  display_name: "半导体人性极端监测"
+  short_description: "每日监测半导体宽度、集中度与杠杆情绪的极端状态"
+  default_prompt: "Use $semiconductor-human-extremes to generate today’s U.S. semiconductor human-extremes report."

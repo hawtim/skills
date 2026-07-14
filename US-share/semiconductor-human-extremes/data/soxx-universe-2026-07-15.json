@@ -1,0 +1,122 @@
+[
+  {
+    "ticker": "AMD",
+    "weight_pct": 8.61743
+  },
+  {
+    "ticker": "MU",
+    "weight_pct": 8.03102
+  },
+  {
+    "ticker": "NVDA",
+    "weight_pct": 8.0225
+  },
+  {
+    "ticker": "AVGO",
+    "weight_pct": 7.15408
+  },
+  {
+    "ticker": "INTC",
+    "weight_pct": 5.41325
+  },
+  {
+    "ticker": "AMAT",
+    "weight_pct": 5.3201
+  },
+  {
+    "ticker": "KLAC",
+    "weight_pct": 4.81253
+  },
+  {
+    "ticker": "MRVL",
+    "weight_pct": 4.41566
+  },
+  {
+    "ticker": "TSM",
+    "weight_pct": 4.35804
+  },
+  {
+    "ticker": "LRCX",
+    "weight_pct": 4.31479
+  },
+  {
+    "ticker": "TXN",
+    "weight_pct": 4.06447
+  },
+  {
+    "ticker": "ADI",
+    "weight_pct": 3.8814
+  },
+  {
+    "ticker": "NXPI",
+    "weight_pct": 3.60491
+  },
+  {
+    "ticker": "MPWR",
+    "weight_pct": 3.16763
+  },
+  {
+    "ticker": "QCOM",
+    "weight_pct": 3.0499
+  },
+  {
+    "ticker": "TER",
+    "weight_pct": 2.74687
+  },
+  {
+    "ticker": "ALAB",
+    "weight_pct": 2.62317
+  },
+  {
+    "ticker": "MCHP",
+    "weight_pct": 2.3177
+  },
+  {
+    "ticker": "ASML",
+    "weight_pct": 2.31472
+  },
+  {
+    "ticker": "CRDO",
+    "weight_pct": 2.02859
+  },
+  {
+    "ticker": "ON",
+    "weight_pct": 1.82286
+  },
+  {
+    "ticker": "ASX",
+    "weight_pct": 1.26593
+  },
+  {
+    "ticker": "ENTG",
+    "weight_pct": 1.06943
+  },
+  {
+    "ticker": "MTSI",
+    "weight_pct": 1.05123
+  },
+  {
+    "ticker": "UMC",
+    "weight_pct": 1.01511
+  },
+  {
+    "ticker": "STM",
+    "weight_pct": 0.83559
+  },
+  {
+    "ticker": "ARM",
+    "weight_pct": 0.77193
+  },
+  {
+    "ticker": "NVMI",
+    "weight_pct": 0.74419
+  },
+  {
+    "ticker": "RMBS",
+    "weight_pct": 0.57288
+  },
+  {
+    "ticker": "SWKS",
+    "weight_pct": 0.45173
+  }
+]

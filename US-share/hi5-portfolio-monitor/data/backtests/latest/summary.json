@@ -1,5 +1,5 @@
 {
-  "rule_version": "1.0.0",
+  "rule_version": "2.0.0",
   "portfolio": {
     "as_of": "2026-07-13",
     "holdings": {
@@ -47,6 +47,8 @@
   "avg_gap_to_future_low_pct": 1.4410684210526317,
   "median_gap_to_future_low_pct": 0.8600000000000001,
   "future_lower_price_seen_pct": 81.05263157894737,
+  "future_0_5_cheaper_pct": 62.63157894736842,
+  "future_1_cheaper_pct": 46.8421052631579,
   "avg_d1_vs_author_pct": 0.02839684210526315,
   "avg_d4_vs_author_pct": 0.09811675675675677,
   "d4_cheaper_pct": 42.16216216216216,
@@ -73,6 +75,8 @@
     "IWY": {
       "n": 38,
       "near_low_1_pct": 55.26315789473684,
+      "cheaper_0_5_pct": 65.78947368421052,
+      "cheaper_1_pct": 44.73684210526316,
       "stage_high_proxy_pct": 21.05263157894737,
       "avg_gap_to_low_pct": 1.528121052631579,
       "avg_d4_vs_author_pct": 0.5172135135135135
@@ -80,6 +84,8 @@
     "RSP": {
       "n": 38,
       "near_low_1_pct": 50.0,
+      "cheaper_0_5_pct": 60.526315789473685,
+      "cheaper_1_pct": 50.0,
       "stage_high_proxy_pct": 21.05263157894737,
       "avg_gap_to_low_pct": 1.3446421052631579,
       "avg_d4_vs_author_pct": 0.04756216216216218
@@ -87,6 +93,8 @@
     "SPMO": {
       "n": 12,
       "near_low_1_pct": 33.333333333333336,
+      "cheaper_0_5_pct": 75.0,
+      "cheaper_1_pct": 66.66666666666667,
       "stage_high_proxy_pct": 25.0,
       "avg_gap_to_low_pct": 1.7283083333333333,
       "avg_d4_vs_author_pct": 0.04749090909090909
@@ -94,6 +102,8 @@
     "VNQ": {
       "n": 38,
       "near_low_1_pct": 44.73684210526316,
+      "cheaper_0_5_pct": 71.05263157894737,
+      "cheaper_1_pct": 55.26315789473684,
       "stage_high_proxy_pct": 26.31578947368421,
       "avg_gap_to_low_pct": 1.901242105263158,
       "avg_d4_vs_author_pct": -0.1506297297297297
@@ -101,6 +111,8 @@
     "PFF": {
       "n": 38,
       "near_low_1_pct": 71.05263157894737,
+      "cheaper_0_5_pct": 44.73684210526316,
+      "cheaper_1_pct": 28.94736842105263,
       "stage_high_proxy_pct": 13.157894736842104,
       "avg_gap_to_low_pct": 0.7266763157894737,
       "avg_d4_vs_author_pct": 0.06594324324324324
@@ -108,6 +120,8 @@
     "MOAT": {
       "n": 26,
       "near_low_1_pct": 50.0,
+      "cheaper_0_5_pct": 69.23076923076923,
+      "cheaper_1_pct": 50.0,
       "stage_high_proxy_pct": 23.076923076923077,
       "avg_gap_to_low_pct": 1.6937461538461538,
       "avg_d4_vs_author_pct": -0.005157692307692315

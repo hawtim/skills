@@ -1,0 +1,7 @@
+interface:
+  display_name: "全球半导体阶段顶底监控"
+  short_description: "自动分析中美韩台半导体结构、阶段顶底与盘后入场环境"
+  default_prompt: "使用 $monitor-global-semiconductor-regime 运行全球半导体盘后监控，按 LEI 结构规则判断中美韩台联动、阶段顶部和阶段底部，并给出当前入场许可。"
+
+policy:
+  allow_implicit_invocation: true

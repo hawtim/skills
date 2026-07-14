@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "report_date": "2026-07-14",
+      "generated_at": "2026-07-14T00:42:05.113548+08:00",
+      "rule_version": "1.0.0",
+      "signal": "TOP_RISK / NO_ENTRY",
+      "readiness": 22.0,
+      "top_risk": 71.3,
+      "benchmark_symbol": "SOXX",
+      "benchmark_date": "2026-07-13",
+      "benchmark_close": 554.1099853515625,
+      "outcomes": {},
+      "status": "open"
+    }
+  ]
+}

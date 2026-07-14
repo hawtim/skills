@@ -1,7 +1,7 @@
 import importlib.util
 import sys
 import unittest
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 
@@ -57,6 +57,11 @@ class Hi5Tests(unittest.TestCase):
     def test_parse_futu_snapshot_amid_logs(self):
         output = 'log line\n{"data":[{"code":"US.VNQ","last_price":96.9}]}\nmore log'
         self.assertEqual(ALERT_MODULE.parse_futu_json(output)["VNQ"]["last_price"], 96.9)
+
+    def test_market_hours_gate(self):
+        self.assertTrue(ALERT_MODULE.market_open_now(datetime(2026, 7, 13, 10, 0, tzinfo=ALERT_MODULE.NEW_YORK)))
+        self.assertFalse(ALERT_MODULE.market_open_now(datetime(2026, 7, 13, 8, 0, tzinfo=ALERT_MODULE.NEW_YORK)))
+        self.assertFalse(ALERT_MODULE.market_open_now(datetime(2026, 7, 12, 10, 0, tzinfo=ALERT_MODULE.NEW_YORK)))
 
 
 if __name__ == "__main__":

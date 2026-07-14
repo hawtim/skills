@@ -1,6 +1,6 @@
 {
   "report_date": "2026-07-15",
-  "state": "半导体偏底部 / 待确认",
+  "state": "半导体短线洗出（底部候选，情绪确认）",
   "metrics": {
     "today": "2026-07-15",
     "breadth": {
@@ -38,7 +38,7 @@
         "date": "2026-07-13",
         "ma5": 566.0740112304687,
         "ma50": 560.141968383789,
-        "ma200": 385.0865188598633,
+        "ma200": 385.08651931762694,
         "return20": -5.632210420282702,
         "drawdown": -15.480683180757094
       },
@@ -56,7 +56,7 @@
         "date": "2026-07-13",
         "ma5": 550.80400390625,
         "ma50": 578.4648828125,
-        "ma200": 403.3776773071289,
+        "ma200": 403.37767700195315,
         "return20": -10.039519763048988,
         "drawdown": -17.261498102013682
       },
@@ -74,9 +74,9 @@
         "date": "2026-07-13",
         "ma5": 4.420000076293945,
         "ma50": 6.477756433486938,
-        "ma200": 33.47491454362869,
+        "ma200": 33.47491456270218,
         "return20": -5.34869857041137,
-        "drawdown": -95.11842294220581
+        "drawdown": -95.1184225512232
       },
       "^SOX": {
         "close": 12347.7802734375,
@@ -88,7 +88,95 @@
         "drawdown": -15.626807317492586
       }
     },
-    "soxl_soxx_20d": -21.76442285936765
+    "soxl_soxx_20d": -21.76442285936765,
+    "soxl_relative_volume": 0.9401047671790029,
+    "soxs_relative_volume": 0.866594189033556,
+    "previous_b20": null,
+    "prior_washout": false,
+    "broad_confirmation": {
+      "available": true,
+      "date": "2026-07-15",
+      "aaii": {
+        "date": "2026-07-08",
+        "bullish": 36.3,
+        "neutral": 26.5,
+        "bearish": 37.2,
+        "source": "https://www.aaii.com/sentimentsurvey/sent_results"
+      },
+      "naaim": {
+        "date": "2026-07-08",
+        "exposure": 82.95,
+        "source": "https://naaim.org/programs/naaim-exposure-index/"
+      },
+      "vix": {
+        "close": 17.15999984741211,
+        "date": "2026-07-13"
+      },
+      "breadth20": [
+        63.02,
+        54.36,
+        56.3
+      ],
+      "signals": {
+        "AAII 极端看空": false,
+        "NAAIM 低仓位": false,
+        "VIX 压力": false,
+        "大盘宽度洗出": false
+      },
+      "score": 0
+    },
+    "option_sentiment": {
+      "underlyings": {
+        "SOXX": {
+          "call_volume": 7353.0,
+          "put_volume": 13990.0,
+          "call_open_interest": 173177.0,
+          "put_open_interest": 290785.0,
+          "iv": 68.16,
+          "iv_rank": 94.609,
+          "iv_percentile": 96.031,
+          "skew_25d": 10.368,
+          "skew_expiry": "2026-08-14",
+          "skew_asof": "2026-07-14 10:27:15"
+        },
+        "SMH": {
+          "call_volume": 48750.0,
+          "put_volume": 67592.0,
+          "call_open_interest": 663594.0,
+          "put_open_interest": 1708205.0,
+          "iv": 61.043,
+          "iv_rank": 95.85,
+          "iv_percentile": 96.825,
+          "skew_25d": 8.595,
+          "skew_expiry": "2026-08-14",
+          "skew_asof": "2026-07-14 11:13:50"
+        },
+        "SOXL": {
+          "call_volume": 48820.0,
+          "put_volume": 99722.0,
+          "call_open_interest": 421874.0,
+          "put_open_interest": 768549.0,
+          "iv": 186.046,
+          "iv_rank": 93.992,
+          "iv_percentile": 96.428
+        },
+        "SOXS": {
+          "call_volume": 81366.0,
+          "put_volume": 41910.0,
+          "call_open_interest": 817218.0,
+          "put_open_interest": 328693.0,
+          "iv": 194.572,
+          "iv_rank": 93.372,
+          "iv_percentile": 97.222
+        }
+      },
+      "soxx_capital_flow": {
+        "net_flow": null,
+        "asof": "2026-07-14 13:55:00",
+        "is_final": false
+      }
+    }
   },
-  "errors": []
+  "errors": [],
+  "warnings": []
 }

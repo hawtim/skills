@@ -30,7 +30,10 @@ HOLDINGS_URL = (
     "asOfDate=&includeConfig=true"
 )
 YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=1y&interval=1d&events=history"
-ETF_TICKERS = ("SOXX", "SMH", "XSD", "SOXL", "SOXS")
+SECTOR_TICKERS = ("SOXX", "SMH", "XSD", "SOXL", "SOXS")
+# TradingView's NASDAQ:SOX is the Philadelphia Semiconductor Index.  Yahoo's
+# chart endpoint exposes the same price benchmark under ^SOX.
+PRICE_TICKERS = SECTOR_TICKERS + ("^SOX",)
 
 
 @dataclass
@@ -121,7 +124,8 @@ def breadth(holdings: list[dict], prices: dict[str, Series], days: int) -> dict:
         if signal is not None: valid.append({**holding, "above": signal})
     total_weight = sum(x["weight_pct"] for x in holdings)
     valid_weight = sum(x["weight_pct"] for x in valid)
-    if not valid: return {"equal": None, "weighted": None, "coverage": 0, "top5": None, "rest": None}
+    if not valid:
+        return {"equal": None, "weighted": None, "coverage": 0, "top5": None, "rest": None, "above_count": 0, "valid_count": 0}
     top5 = valid[:5]
     rest = valid[5:]
     return {
@@ -130,6 +134,8 @@ def breadth(holdings: list[dict], prices: dict[str, Series], days: int) -> dict:
         "coverage": 100 * valid_weight / total_weight,
         "top5": 100 * sum(x["above"] for x in top5) / len(top5) if top5 else None,
         "rest": 100 * sum(x["above"] for x in rest) / len(rest) if rest else None,
+        "above_count": sum(x["above"] for x in valid),
+        "valid_count": len(valid),
     }
 
 
@@ -144,16 +150,33 @@ def ratio_return(left: Series, right: Series, days: int = 20):
     return ret(ratios, days)
 
 
+def breadth_zone(value, low: int, high: int) -> str:
+    if value is None: return "数据不足"
+    if value <= low: return f"底部极端区（≤{low}%）"
+    if value >= high: return f"顶部极端区（≥{high}%）"
+    return "中间区"
+
+
+def gauge(value, low: int, high: int, slots: int = 24) -> str:
+    """Show the current breadth reading against the two fixed extreme lines."""
+    if value is None: return "UNAVAILABLE"
+    chars = ["─"] * (slots + 1)
+    chars[round(low / 100 * slots)] = "┊"
+    chars[round(high / 100 * slots)] = "┊"
+    chars[max(0, min(slots, round(value / 100 * slots)))] = "●"
+    return "".join(chars)
+
+
 def classify(metrics: dict) -> tuple[str, list[str], str]:
     b20, b50, b200 = (metrics["breadth"][n] for n in (20, 50, 200))
-    soxx, smh = metrics["etf"]["SOXX"], metrics["etf"]["SMH"]
+    soxx, smh, sox = metrics["etf"]["SOXX"], metrics["etf"]["SMH"], metrics["etf"]["^SOX"]
     leverage = metrics["soxl_soxx_20d"]
     if min(b20["coverage"], b50["coverage"], b200["coverage"]) < 75:
         return "数据不足 / 不作极端判断", [], "成分股价格覆盖不足 75% 权重。"
-    if any(stale(metrics["etf"][ticker]["date"], 3, metrics["today"]) for ticker in ETF_TICKERS):
-        return "数据不足 / 不作极端判断", [], "行业 ETF 观测超过新鲜度窗口。"
+    if any(stale(metrics["etf"][ticker]["date"], 3, metrics["today"]) for ticker in PRICE_TICKERS):
+        return "数据不足 / 不作极端判断", [], "行业指数或 ETF 观测超过新鲜度窗口。"
     near_high = soxx["drawdown"] >= -3 and smh["drawdown"] >= -3
-    trend_up = near_high and soxx["close"] > soxx["ma50"] > 0 and soxx["close"] > soxx["ma200"] and smh["close"] > smh["ma50"] and smh["close"] > smh["ma200"]
+    trend_up = near_high and soxx["close"] > soxx["ma50"] > 0 and soxx["close"] > soxx["ma200"] and smh["close"] > smh["ma50"] and smh["close"] > smh["ma200"] and sox["close"] > sox["ma50"] and sox["close"] > sox["ma200"]
     saturated = b20["equal"] >= 85 and b50["equal"] >= 80
     leadership_gap = b50["top5"] - b50["rest"] if b50["top5"] is not None and b50["rest"] is not None else 0
     fragile = trend_up and b20["equal"] <= 60 and leadership_gap >= 25
@@ -161,7 +184,7 @@ def classify(metrics: dict) -> tuple[str, list[str], str]:
     stress = soxx["drawdown"] <= -15 or soxx["close"] < soxx["ma200"]
     washed_out = b20["equal"] <= 15 and b50["equal"] <= 25
     leveraged_unwind = leverage is not None and leverage <= -12
-    evidence = [f"SOXX 距 252 日高点 {soxx['drawdown']:.2f}% / SMH {smh['drawdown']:.2f}%", f"等权宽度：20 日 {b20['equal']:.1f}%｜50 日 {b50['equal']:.1f}%｜200 日 {b200['equal']:.1f}%", f"权重宽度：20 日 {b20['weighted']:.1f}%｜50 日 {b50['weighted']:.1f}%｜200 日 {b200['weighted']:.1f}%", f"50 日龙头差（前五大 - 其余）{leadership_gap:+.1f}pct", f"SOXL/SOXX 20 日变化 {fmt(leverage, '%')}（杠杆情绪代理）"]
+    evidence = [f"SOXX 距 252 日高点 {soxx['drawdown']:.2f}% / SMH {smh['drawdown']:.2f}% / SOX {sox['drawdown']:.2f}%", f"等权宽度：20 日 {b20['equal']:.1f}%（{b20['above_count']}/{b20['valid_count']}）｜50 日 {b50['equal']:.1f}%（{b50['above_count']}/{b50['valid_count']}）｜200 日 {b200['equal']:.1f}%（{b200['above_count']}/{b200['valid_count']}）", f"权重宽度：20 日 {b20['weighted']:.1f}%｜50 日 {b50['weighted']:.1f}%｜200 日 {b200['weighted']:.1f}%", f"50 日龙头差（前五大 - 其余）{leadership_gap:+.1f}pct", f"SOXL/SOXX 20 日变化 {fmt(leverage, '%')}（杠杆情绪代理）"]
     if trend_up and (saturated or fragile) and leveraged_long:
         return "半导体顶部人性极端（警戒）", evidence, "停止追高，检查行业集中度和杠杆；这不是做空指令。"
     if stress and washed_out and leveraged_unwind:
@@ -181,13 +204,20 @@ def build_report(metrics: dict, state: str, evidence: list[str], action: str, er
     today = metrics["today"]
     b = metrics.get("breadth", {})
     lines = [f"# 半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", action, "", "## 证据", ""] + [f"- {item}" for item in evidence]
-    lines += ["", "## 宽度与覆盖", "", "| 周期 | 等权宽度 | 权重宽度 | 覆盖权重 |", "|---|---:|---:|---:|"]
-    for days in (20, 50, 200): lines.append(f"| {days} 日 | {fmt(b[days]['equal'], '%')} | {fmt(b[days]['weighted'], '%')} | {fmt(b[days]['coverage'], '%')} |" if days in b else f"| {days} 日 | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |")
+    lines += ["", "## 宽度位置（像图中 15%／85% 的读法）", "", "这里的百分比是 **SOXX 成分股中站上对应均线的比例**，不是价格的历史百分位。`┊` 是极端线，`●` 是当前位置。", "", "| 周期 | 等权读数（股票数） | 位置图（0% → 100%） | 极端线 | 当前区间 | 权重宽度 | 覆盖权重 |", "|---|---:|---|---|---|---:|---:|"]
+    bounds = {20: (15, 85), 50: (25, 80), 200: (15, 85)}
+    for days in (20, 50, 200):
+        if days not in b:
+            lines.append(f"| {days} 日 | UNAVAILABLE | UNAVAILABLE | — | 数据不足 | UNAVAILABLE | UNAVAILABLE |")
+            continue
+        item, (low, high) = b[days], bounds[days]
+        count = f"{item['above_count']}/{item['valid_count']}" if item['equal'] is not None else "—"
+        lines.append(f"| {days} 日 | {fmt(item['equal'], '%')}（{count}） | `{gauge(item['equal'], low, high)}` | {low}% / {high}% | {breadth_zone(item['equal'], low, high)} | {fmt(item['weighted'], '%')} | {fmt(item['coverage'], '%')} |")
     if metrics.get("etf"):
-        lines += ["", "## 行业 ETF", "", "| 指标 | 收盘 | 20 日变化 | 252 日回撤 | 观测日 |", "|---|---:|---:|---:|---|"]
-        for ticker in ("SOXX", "SMH", "XSD", "SOXL", "SOXS"):
+        lines += ["", "## 行业指数与 ETF", "", "| 指标 | 收盘 | 20 日变化 | 252 日回撤 | 观测日 |", "|---|---:|---:|---:|---|"]
+        for ticker in ("^SOX", "SOXX", "SMH", "XSD", "SOXL", "SOXS"):
             item = metrics["etf"].get(ticker, {}); lines.append(f"| {ticker} | {fmt(item.get('close'))} | {fmt(item.get('return20'), '%')} | {fmt(item.get('drawdown'), '%')} | {item.get('date', '—')} |")
-    lines += ["", "## 风险纪律", "", "- 20/50 日宽度极高并不保证立即见顶；它只说明参与度普遍扩散。", "- 指数创新高、等权宽度走弱且龙头差扩大，才是集中度风险证据。", "- SOXL/SOXX 是杠杆偏好代理，不是资金流或散户调查。", "", "## 数据质量与来源", "", "- SOXX 成分与权重：iShares 官方 Holdings > All 产品数据；当日持仓快照已保存。", "- 价格：Yahoo Finance chart JSON。"]
+    lines += ["", "## 怎么读", "", "- 20 日宽度最敏感：低于 15% 表示短线普遍洗出，高于 85% 表示短线普遍拥挤。", "- 50 日宽度更看中期参与度：低于 25% / 高于 80% 才进入极端区。", "- 只有宽度极端与 SOXX/SMH/SOX 的趋势、以及 SOXL 风险偏好相互确认，才升级为“人性极端”。", "", "## 风险纪律", "", "- 20/50 日宽度极高并不保证立即见顶；它只说明参与度普遍扩散。", "- 指数创新高、等权宽度走弱且龙头差扩大，才是集中度风险证据。", "- SOXL/SOXX 是杠杆偏好代理，不是资金流或散户调查。", "", "## 数据质量与来源", "", "- SOXX 成分与权重：iShares 官方 Holdings > All 产品数据；当日持仓快照已保存。", "- NASDAQ:SOX（费城半导体指数）作为行业价格趋势锚；脚本以 `^SOX` 获取日线。", "- 价格：Yahoo Finance chart JSON。"]
     if errors: lines += ["", "### 采集错误", ""] + [f"- {item}" for item in errors]
     return "\n".join(lines) + "\n"
 
@@ -197,11 +227,11 @@ def run() -> int:
     try: holdings = fetch_holdings()
     except Exception as exc: errors.append(f"SOXX holdings: {type(exc).__name__}: {exc}")
     if holdings:
-        prices, price_errors = fetch_prices([x["ticker"] for x in holdings] + list(ETF_TICKERS)); errors.extend(price_errors)
+        prices, price_errors = fetch_prices([x["ticker"] for x in holdings] + list(PRICE_TICKERS)); errors.extend(price_errors)
     metrics = {"today": today, "breadth": {}, "etf": {}}
     try:
         metrics["breadth"] = {days: breadth(holdings, prices, days) for days in (20, 50, 200)}
-        metrics["etf"] = {ticker: etf_metrics(prices[ticker]) for ticker in ETF_TICKERS}
+        metrics["etf"] = {ticker: etf_metrics(prices[ticker]) for ticker in PRICE_TICKERS}
         metrics["soxl_soxx_20d"] = ratio_return(prices["SOXL"], prices["SOXX"])
         state, evidence, action = classify(metrics)
     except Exception as exc:
@@ -229,8 +259,8 @@ def run() -> int:
 
 def self_test():
     today = date(2026, 7, 15)
-    etf = {ticker: {"close": 100., "date": date(2026, 7, 14), "ma5": 98., "ma50": 95., "ma200": 90., "return20": 4., "drawdown": -2.} for ticker in ETF_TICKERS}
-    broad = {n: {"equal": 90., "weighted": 90., "coverage": 100., "top5": 100., "rest": 85.} for n in (20, 50, 200)}
+    etf = {ticker: {"close": 100., "date": date(2026, 7, 14), "ma5": 98., "ma50": 95., "ma200": 90., "return20": 4., "drawdown": -2.} for ticker in PRICE_TICKERS}
+    broad = {n: {"equal": 90., "weighted": 90., "coverage": 100., "top5": 100., "rest": 85., "above_count": 27, "valid_count": 30} for n in (20, 50, 200)}
     assert classify({"today": today, "breadth": broad, "etf": etf, "soxl_soxx_20d": 15.})[0] == "半导体顶部人性极端（警戒）"
     broad[20]["coverage"] = 50.
     assert classify({"today": today, "breadth": broad, "etf": etf, "soxl_soxx_20d": 15.})[0] == "数据不足 / 不作极端判断"

@@ -24,7 +24,7 @@ Always read:
 
 1. Run the collector and retry once only if it fails.
 2. Verify that at least 75% of SOXX constituent weight has valid 200-day price history and that SOXX, SMH, SOXL and SOXS are fresh.
-3. Lead with the state, then show 20/50/200-day equal-weight and cap-weight breadth, top-five versus remainder breadth, SOXX/SMH trend, and the SOXL/SOXX proxy.
+3. Lead with the state, then show the 20/50/200-day breadth-position bars (current reading, stock count, and fixed extreme lines), cap-weight breadth, top-five versus remainder breadth, SOXX/SMH/SOX trend, and the SOXL/SOXX proxy.
 4. Interpret strong price plus low volatility as normal unless breadth saturation/concentration and leverage appetite also point to crowding.
 5. If coverage is insufficient, output `数据不足 / 不作极端判断`; never substitute an old constituent list or quote.
 
@@ -32,6 +32,7 @@ Always read:
 
 - Use the current SOXX holdings only for daily monitoring and archive each daily universe snapshot. Do not use current holdings alone for historical backtests.
 - Label SOXL/SOXX as a leveraged-risk-appetite proxy, not a direct survey or a causal signal.
+- Treat TradingView `NASDAQ:SOX` (Philadelphia Semiconductor Index) as a sector price-trend cross-check, not as a substitute for constituent breadth.
 - Treat a bottom state as an observation point until SOXX regains its 5-day average. Treat a top state as a risk-control alert, not a short signal.
 - Keep general U.S. market sentiment (AAII/NAAIM) in the broad-market monitor; do not claim it is semiconductor-specific.
 - Never place trades, give price targets, or invent unavailable holdings/quotes.

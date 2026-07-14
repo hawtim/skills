@@ -33,10 +33,20 @@ HOLDINGS_URL = (
     "asOfDate=&includeConfig=true"
 )
 YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=1y&interval=1d&events=history"
-SECTOR_TICKERS = ("SOXX", "SMH", "XSD", "SOXL", "SOXS")
+SECTOR_TICKERS = ("SOXX", "SMH", "XSD", "SOXL", "SOXS", "DRAM")
 # TradingView's NASDAQ:SOX is the Philadelphia Semiconductor Index.  Yahoo's
 # chart endpoint exposes the same price benchmark under ^SOX.
 PRICE_TICKERS = SECTOR_TICKERS + ("^SOX",)
+# SMH's benchmark is the MVIS US Listed Semiconductor 25 Index.  VanEck's
+# public web table is cookie-gated in unattended runs, so maintain this liquid
+# 25-name reference basket for equal-weight *breadth* only.  It is never used
+# as an official SMH weight calculation; refresh it whenever the provider
+# releases a revised constituent file.
+SMH_BREADTH_TICKERS = (
+    "NVDA", "TSM", "AVGO", "ASML", "AMD", "MU", "AMAT", "LRCX", "KLAC",
+    "INTC", "QCOM", "ADI", "MRVL", "MCHP", "NXPI", "ON", "TXN", "MPWR",
+    "TER", "SWKS", "QRVO", "ARM", "GFS", "ENTG", "UMC",
+)
 FUTU_OPTIONS_SCRIPT = ROOT / "scripts" / "fetch_futu_option_sentiment.py"
 BROAD_SNAPSHOT = ROOT.parent / "market-human-extremes" / "data" / "latest_snapshot.json"
 
@@ -145,6 +155,22 @@ def breadth(holdings: list[dict], prices: dict[str, Series], days: int) -> dict:
         "above_count": sum(x["above"] for x in valid),
         "valid_count": len(valid),
     }
+
+
+def smh_breadth(prices: dict[str, Series]) -> dict:
+    """Compute an independent, equal-weight SMH reference-basket breadth."""
+    holdings = [{"ticker": ticker, "weight_pct": 100 / len(SMH_BREADTH_TICKERS)} for ticker in SMH_BREADTH_TICKERS]
+    return {days: breadth(holdings, prices, days) for days in (20, 50, 200)}
+
+
+def dram_state(series: Series) -> str:
+    metric = etf_metrics(series)
+    below_ma200 = metric["ma200"] is not None and metric["close"] < metric["ma200"]
+    if metric["drawdown"] <= -15 and (below_ma200 or len(series.closes) < 200):
+        return "存储子行业压力 / 偏底部"
+    if metric["drawdown"] >= -3 and metric["return20"] >= 15:
+        return "存储子行业偏热"
+    return "存储子行业中性 / 跟踪分化"
 
 
 def etf_metrics(series: Series) -> dict:
@@ -311,6 +337,13 @@ def build_report(metrics: dict, state: str, evidence: list[str], action: str, er
         item, (low, high) = b[days], bounds[days]
         count = f"{item['above_count']}/{item['valid_count']}" if item['equal'] is not None else "—"
         lines.append(f"| {days} 日 | {fmt(item['equal'], '%')}（{count}） | `{gauge(item['equal'], low, high)}` | {low}% / {high}% | {breadth_zone(item['equal'], low, high)} | {fmt(item['weighted'], '%')} | {fmt(item['coverage'], '%')} |")
+    smh_b = metrics.get("smh_breadth", {})
+    lines += ["", "## SMH 独立宽度（龙头权重层）", "", "SMH 宽度与 SOXX 分开计算，用于识别“只有龙头在修复 / 抛压”。因 VanEck 持仓网页在无人值守环境受 cookie 限制，当前使用 25 只流动性龙头参考篮子的**等权**宽度；不伪装成 SMH 官方权重宽度。", "", "| 周期 | 等权读数（股票数） | 位置图 | 当前区间 |", "|---|---:|---|---|"]
+    for days in (20, 50, 200):
+        item, (low, high) = smh_b.get(days, {}), bounds[days]
+        count = f"{item.get('above_count', '—')}/{item.get('valid_count', '—')}" if item else "—"
+        lines.append(f"| {days} 日 | {fmt(item.get('equal'), '%')}（{count}） | `{gauge(item.get('equal'), low, high)}` | {breadth_zone(item.get('equal'), low, high)} |")
+    lines += ["", "- 解读：SOXX 很弱而 SMH 较强，通常表示少数大市值龙头支撑；两者同步低于 15%，才是更广泛的行业洗出。"]
     lines += ["", "## 底部判断（两阶段）", "", "| 阶段 | 当前判断 | 升级条件 |", "|---|---|---|", f"| 短线洗出 | {'已触发：20 日等权宽度 ≤15%' if b.get(20, {}).get('equal') is not None and b[20]['equal'] <= 15 else '未触发'} | 仅说明普遍抛压，不等于价格已止跌 |", f"| 短线底部确认 | {'已确认' if '确认改善' in state else '尚未确认'} | SOXX 与 SOX 收回 5 日线，且 20 日宽度较上一日回升至少 5pct |"]
     options = metrics.get("option_sentiment", {}).get("underlyings", {})
     flow = metrics.get("option_sentiment", {}).get("soxx_capital_flow")
@@ -333,8 +366,9 @@ def build_report(metrics: dict, state: str, evidence: list[str], action: str, er
         lines.append(f"- UNAVAILABLE：{broad.get('reason', '未知原因')}。这不会阻止行业独立判断。")
     if metrics.get("etf"):
         lines += ["", "## 行业指数与 ETF", "", "| 指标 | 收盘 | 20 日变化 | 252 日回撤 | 观测日 |", "|---|---:|---:|---:|---|"]
-        for ticker in ("^SOX", "SOXX", "SMH", "XSD", "SOXL", "SOXS"):
+        for ticker in ("^SOX", "SOXX", "SMH", "XSD", "DRAM", "SOXL", "SOXS"):
             item = metrics["etf"].get(ticker, {}); lines.append(f"| {ticker} | {fmt(item.get('close'))} | {fmt(item.get('return20'), '%')} | {fmt(item.get('drawdown'), '%')} | {item.get('date', '—')} |")
+        lines += ["", f"- **DRAM 存储子行业状态：{metrics.get('dram_state', 'UNAVAILABLE')}**。DRAM 是内存/存储主题卫星，不用来替代整体半导体宽度。"]
     lines += ["", "## 怎么读", "", "- 20 日宽度最敏感：低于 15% 表示短线普遍洗出，高于 85% 表示短线普遍拥挤。", "- 50 日宽度更看中期参与度：低于 25% / 高于 80% 才进入极端区。", "- 期权恐慌确认要求 SOXX、SMH 同时满足 Put/Call 成交比 ≥1.25、IV Rank ≥80；正偏度代表下行保护更贵。", "- 大盘 AAII/NAAIM/VIX/宽度仅是半导体底部的加分项，不是必要条件。", "", "## 风险纪律", "", "- 20 日宽度极低是短线洗出，不保证最低价已经出现。", "- 只有价格收回 5 日线且宽度回升，才从“底部候选”升级到“确认改善”。", "- SOXL/SOXX 与 SOXX 成交资金流代理均不是 ETF 申赎资金流，不得单独据此下单。", "", "## 数据质量与来源", "", "- SOXX 成分与权重：iShares 官方 Holdings > All 产品数据；当日持仓快照已保存。", "- NASDAQ:SOX（费城半导体指数）作为行业价格趋势锚；脚本以 `^SOX` 获取日线。", "- 价格与成交量：Yahoo Finance chart JSON。期权与成交资金流代理：本地富途 OpenD（可选；不可用时不参与判断）。"]
     if errors: lines += ["", "### 采集错误", ""] + [f"- {item}" for item in errors]
     return "\n".join(lines) + "\n"
@@ -345,11 +379,13 @@ def run() -> int:
     try: holdings = fetch_holdings()
     except Exception as exc: errors.append(f"SOXX holdings: {type(exc).__name__}: {exc}")
     if holdings:
-        prices, price_errors = fetch_prices([x["ticker"] for x in holdings] + list(PRICE_TICKERS)); errors.extend(price_errors)
+        prices, price_errors = fetch_prices([x["ticker"] for x in holdings] + list(SMH_BREADTH_TICKERS) + list(PRICE_TICKERS)); errors.extend(price_errors)
     metrics = {"today": today, "breadth": {}, "etf": {}}
     try:
         metrics["breadth"] = {days: breadth(holdings, prices, days) for days in (20, 50, 200)}
+        metrics["smh_breadth"] = smh_breadth(prices)
         metrics["etf"] = {ticker: etf_metrics(prices[ticker]) for ticker in PRICE_TICKERS}
+        metrics["dram_state"] = dram_state(prices["DRAM"])
         metrics["soxl_soxx_20d"] = ratio_return(prices["SOXL"], prices["SOXX"])
         metrics["soxl_relative_volume"] = relative_volume(prices["SOXL"])
         metrics["soxs_relative_volume"] = relative_volume(prices["SOXS"])

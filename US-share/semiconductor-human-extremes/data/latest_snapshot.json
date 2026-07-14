@@ -38,7 +38,7 @@
         "date": "2026-07-13",
         "ma5": 566.0740112304687,
         "ma50": 560.141968383789,
-        "ma200": 385.08651931762694,
+        "ma200": 385.0865191650391,
         "return20": -5.632210420282702,
         "drawdown": -15.480683180757094
       },
@@ -56,7 +56,7 @@
         "date": "2026-07-13",
         "ma5": 550.80400390625,
         "ma50": 578.4648828125,
-        "ma200": 403.37767700195315,
+        "ma200": 403.37767639160154,
         "return20": -10.039519763048988,
         "drawdown": -17.261498102013682
       },
@@ -74,9 +74,18 @@
         "date": "2026-07-13",
         "ma5": 4.420000076293945,
         "ma50": 6.477756433486938,
-        "ma200": 33.47491456270218,
+        "ma200": 33.47491472482681,
         "return20": -5.34869857041137,
         "drawdown": -95.1184225512232
+      },
+      "DRAM": {
+        "close": 57.29999923706055,
+        "date": "2026-07-13",
+        "ma5": 61.466000366210935,
+        "ma50": 60.45240013122559,
+        "ma200": null,
+        "return20": -12.008604391424004,
+        "drawdown": -29.01387714255361
       },
       "^SOX": {
         "close": 12347.7802734375,
@@ -88,6 +97,36 @@
         "drawdown": -15.626807317492586
       }
     },
+    "smh_breadth": {
+      "20": {
+        "equal": 12.0,
+        "weighted": 12.0,
+        "coverage": 100.0,
+        "top5": 60.0,
+        "rest": 0.0,
+        "above_count": 3,
+        "valid_count": 25
+      },
+      "50": {
+        "equal": 24.0,
+        "weighted": 24.0,
+        "coverage": 100.0,
+        "top5": 40.0,
+        "rest": 20.0,
+        "above_count": 6,
+        "valid_count": 25
+      },
+      "200": {
+        "equal": 92.0,
+        "weighted": 92.0,
+        "coverage": 100.0,
+        "top5": 100.0,
+        "rest": 90.0,
+        "above_count": 23,
+        "valid_count": 25
+      }
+    },
+    "dram_state": "存储子行业压力 / 偏底部",
     "soxl_soxx_20d": -21.76442285936765,
     "soxl_relative_volume": 0.9401047671790029,
     "soxs_relative_volume": 0.866594189033556,
@@ -128,51 +167,51 @@
     "option_sentiment": {
       "underlyings": {
         "SOXX": {
-          "call_volume": 7353.0,
-          "put_volume": 13990.0,
+          "call_volume": 7798.0,
+          "put_volume": 14776.0,
           "call_open_interest": 173177.0,
           "put_open_interest": 290785.0,
-          "iv": 68.16,
-          "iv_rank": 94.609,
+          "iv": 68.117,
+          "iv_rank": 94.519,
           "iv_percentile": 96.031,
-          "skew_25d": 10.368,
+          "skew_25d": 10.678,
           "skew_expiry": "2026-08-14",
           "skew_asof": "2026-07-14 10:27:15"
         },
         "SMH": {
-          "call_volume": 48750.0,
-          "put_volume": 67592.0,
+          "call_volume": 50491.0,
+          "put_volume": 71977.0,
           "call_open_interest": 663594.0,
           "put_open_interest": 1708205.0,
-          "iv": 61.043,
-          "iv_rank": 95.85,
+          "iv": 61.041,
+          "iv_rank": 95.843,
           "iv_percentile": 96.825,
-          "skew_25d": 8.595,
+          "skew_25d": 8.736,
           "skew_expiry": "2026-08-14",
           "skew_asof": "2026-07-14 11:13:50"
         },
         "SOXL": {
-          "call_volume": 48820.0,
-          "put_volume": 99722.0,
+          "call_volume": 51237.0,
+          "put_volume": 106813.0,
           "call_open_interest": 421874.0,
           "put_open_interest": 768549.0,
-          "iv": 186.046,
-          "iv_rank": 93.992,
+          "iv": 186.173,
+          "iv_rank": 94.102,
           "iv_percentile": 96.428
         },
         "SOXS": {
-          "call_volume": 81366.0,
-          "put_volume": 41910.0,
+          "call_volume": 82340.0,
+          "put_volume": 43696.0,
           "call_open_interest": 817218.0,
           "put_open_interest": 328693.0,
-          "iv": 194.572,
-          "iv_rank": 93.372,
+          "iv": 194.284,
+          "iv_rank": 93.146,
           "iv_percentile": 97.222
         }
       },
       "soxx_capital_flow": {
         "net_flow": null,
-        "asof": "2026-07-14 13:55:00",
+        "asof": "2026-07-14 14:13:00",
         "is_final": false
       }
     }

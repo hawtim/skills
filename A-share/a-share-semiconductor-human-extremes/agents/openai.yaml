@@ -1,0 +1,4 @@
+interface:
+  display_name: "A股半导体人性极端"
+  short_description: "A股半导体宽度、ETF趋势与情绪监测日报"
+  default_prompt: "Use $a-share-semiconductor-human-extremes to generate today’s A-share semiconductor human-extremes report."

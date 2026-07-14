@@ -10,11 +10,13 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "generate_daily_report.py"
 FUTU_SNAPSHOT = Path.home() / ".codex/skills/futuapi/scripts/quote/get_snapshot.py"
+NEW_YORK = ZoneInfo("America/New_York")
 
 SPEC = importlib.util.spec_from_file_location("hi5_generator", GENERATOR)
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -31,6 +33,12 @@ def target_fraction(discount_pct: float) -> int:
     if discount_pct >= 0.5:
         return 25
     return 0
+
+
+def market_open_now(now: datetime | None = None) -> bool:
+    current = (now or datetime.now(NEW_YORK)).astimezone(NEW_YORK)
+    minutes = current.hour * 60 + current.minute
+    return current.weekday() < 5 and 9 * 60 + 30 <= minutes < 16 * 60
 
 
 def parse_futu_json(output: str) -> dict[str, dict]:
@@ -107,6 +115,10 @@ def run(allow_backfill: bool = False) -> dict:
         MODULE.atomic_text(ledger_path, json.dumps(ledger, ensure_ascii=False, indent=2))
         return {"status": "SKIP", "campaign_date": campaign_day, "d_stage": d_stage,
                 "reason": "historical_backfill" if episode.get("historical_backfill") else "window_closed", "alerts": []}
+    if not market_open_now():
+        MODULE.atomic_text(ledger_path, json.dumps(ledger, ensure_ascii=False, indent=2))
+        return {"status": "SKIP", "campaign_date": campaign_day, "d_stage": d_stage,
+                "reason": "us_market_closed", "alerts": []}
 
     symbols = [trade.symbol for trade in campaign]
     try:

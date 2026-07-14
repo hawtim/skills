@@ -1,0 +1,4 @@
+interface:
+  display_name: "市场人性极端监测"
+  short_description: "每日监测美股情绪、仓位与市场宽度极端状态"
+  default_prompt: "Use $market-human-extremes to generate today’s U.S. market human-extremes report."

@@ -1,0 +1,14 @@
+{
+  "as_of": null,
+  "base_currency": "CNY",
+  "cash_pct": null,
+  "holdings": [],
+  "constraints": {
+    "max_single_position_pct": null,
+    "max_leverage": null,
+    "max_daily_loss_pct": null
+  },
+  "notes": [
+    "待用户补充：code、name、quantity 或 weight_pct、cost_basis、horizon、thesis、risk_limit"
+  ]
+}

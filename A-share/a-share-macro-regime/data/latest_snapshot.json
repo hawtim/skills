@@ -1,0 +1,147 @@
+{
+  "generated_at": "2026-07-14T00:33:09.258026+08:00",
+  "result": {
+    "base_score": 41.2,
+    "coverage_pct": 84.4,
+    "regime": "偏防守",
+    "modules": {
+      "趋势与内部结构": {
+        "weight": 30,
+        "score": 35.714285714285715
+      },
+      "参与度与流动性": {
+        "weight": 15,
+        "score": 13.88603721123985
+      },
+      "人民币与利率": {
+        "weight": 15,
+        "score": 66.66666666666667
+      },
+      "离岸中国信号": {
+        "weight": 20,
+        "score": 38.0
+      },
+      "全球风险环境": {
+        "weight": 10,
+        "score": 58.28333377838135
+      },
+      "政策与事件": {
+        "weight": 10,
+        "score": 50.0
+      }
+    },
+    "vetoes": [],
+    "changes": {
+      "csi300_20d_pct": -1.7151875947183703,
+      "cnh_20d_pct": null,
+      "hxc_5d_pct": null,
+      "yinn_5d_pct": 14.855075624905023,
+      "yang_5d_pct": -13.773963593698934
+    }
+  },
+  "errors": [],
+  "series": {
+    "CNH=X": {
+      "label": "USD/CNH",
+      "date": "2026-07-13",
+      "value": 6.783909797668457,
+      "source": "Yahoo chart JSON (CNH=X)"
+    },
+    "000001.SS": {
+      "label": "上证综指",
+      "date": "2026-07-13",
+      "value": 3913.79,
+      "source": "Tencent qfq kline (sh000001)"
+    },
+    "399006.SZ": {
+      "label": "创业板指",
+      "date": "2026-07-13",
+      "value": 3723.52,
+      "source": "Tencent qfq kline (sz399006)"
+    },
+    "511260.SS": {
+      "label": "10年国债ETF代理",
+      "date": "2026-07-13",
+      "value": 134.918,
+      "source": "Tencent qfq kline (sh511260)"
+    },
+    "510300.SS": {
+      "label": "沪深300ETF成交代理",
+      "date": "2026-07-13",
+      "value": 4.744,
+      "source": "Tencent qfq kline (sh510300)"
+    },
+    "000300.SS": {
+      "label": "沪深300",
+      "date": "2026-07-13",
+      "value": 4695.38,
+      "source": "Tencent qfq kline (sh000300)"
+    },
+    "000852.SS": {
+      "label": "中证1000",
+      "date": "2026-07-13",
+      "value": 7787.85,
+      "source": "Tencent qfq kline (sh000852)"
+    },
+    "000688.SS": {
+      "label": "科创50",
+      "date": "2026-07-13",
+      "value": 1994.32,
+      "source": "Tencent qfq kline (sh000688)"
+    },
+    "^HXC": {
+      "label": "纳斯达克金龙中国指数",
+      "date": null,
+      "value": null,
+      "source": "Yahoo chart JSON (^HXC)"
+    },
+    "YINN": {
+      "label": "中国三倍做多ETF",
+      "date": "2026-07-10",
+      "value": 25.360000610351562,
+      "source": "Yahoo chart JSON (YINN)"
+    },
+    "MCHI": {
+      "label": "宽基中国ETF",
+      "date": "2026-07-10",
+      "value": 53.130001068115234,
+      "source": "Yahoo chart JSON (MCHI)"
+    },
+    "^VIX": {
+      "label": "VIX",
+      "date": "2026-07-10",
+      "value": 15.029999732971191,
+      "source": "Yahoo chart JSON (^VIX)"
+    },
+    "KWEB": {
+      "label": "中国互联网ETF",
+      "date": "2026-07-10",
+      "value": 26.3799991607666,
+      "source": "Yahoo chart JSON (KWEB)"
+    },
+    "SPY": {
+      "label": "S&P 500 ETF",
+      "date": "2026-07-10",
+      "value": 754.9500122070312,
+      "source": "Yahoo chart JSON (SPY)"
+    },
+    "YANG": {
+      "label": "中国三倍做空ETF",
+      "date": "2026-07-10",
+      "value": 34.18000030517578,
+      "source": "Yahoo chart JSON (YANG)"
+    },
+    "FXI": {
+      "label": "中国大盘股ETF",
+      "date": "2026-07-10",
+      "value": 33.47999954223633,
+      "source": "Yahoo chart JSON (FXI)"
+    },
+    "UUP": {
+      "label": "美元ETF代理",
+      "date": "2026-07-10",
+      "value": 28.389999389648438,
+      "source": "Yahoo chart JSON (UUP)"
+    }
+  }
+}

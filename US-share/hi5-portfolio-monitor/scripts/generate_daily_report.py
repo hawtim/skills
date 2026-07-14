@@ -30,7 +30,7 @@ SYMBOLS = ("IWY", "RSP", "MOAT", "SPMO", "VNQ", "PFF")
 CURRENT = ("IWY", "RSP", "SPMO", "VNQ", "PFF")
 TZ = ZoneInfo("Asia/Shanghai")
 UA = "Mozilla/5.0 hi5-portfolio-monitor/1.0"
-RULE_VERSION = "1.0.0"
+RULE_VERSION = "2.0.0"
 
 
 @dataclass(frozen=True)
@@ -402,6 +402,11 @@ def pct_below_zero(rows: list[dict], key: str) -> float | None:
     return 100 * sum(value < 0 for value in values) / len(values) if values else None
 
 
+def pct_at_least(rows: list[dict], key: str, threshold: float) -> float | None:
+    values = [float(row[key]) for row in rows if row.get(key) is not None]
+    return 100 * sum(value >= threshold for value in values) / len(values) if values else None
+
+
 def pct_available(rows: list[dict], key: str) -> tuple[int, float | None]:
     values = [bool(row[key]) for row in rows if row.get(key) is not None]
     return len(values), (100 * sum(values) / len(values) if values else None)
@@ -484,6 +489,8 @@ def summarize(events: list[dict], portfolio: dict, sheet_latest: dict, prices: d
         rows = [row for row in recurring if row["symbol"] == symbol]
         if rows:
             by_symbol[symbol] = {"n": len(rows), "near_low_1_pct": pct(rows, "near_low_1"),
+                                 "cheaper_0_5_pct": pct_at_least(rows, "gap_to_future_low_pct", 0.5),
+                                 "cheaper_1_pct": pct_at_least(rows, "gap_to_future_low_pct", 1.0),
                                  "stage_high_proxy_pct": pct(rows, "stage_high_proxy"),
                                  "avg_gap_to_low_pct": mean(rows, "gap_to_future_low_pct"),
                                  "avg_d4_vs_author_pct": mean(rows, "d4_vs_author_pct")}
@@ -499,6 +506,8 @@ def summarize(events: list[dict], portfolio: dict, sheet_latest: dict, prices: d
         "avg_gap_to_future_low_pct": mean(recurring, "gap_to_future_low_pct"),
         "median_gap_to_future_low_pct": statistics.median(float(row["gap_to_future_low_pct"]) for row in recurring) if recurring else None,
         "future_lower_price_seen_pct": 100 * sum(float(row["gap_to_future_low_pct"]) > 0 for row in recurring) / len(recurring) if recurring else None,
+        "future_0_5_cheaper_pct": pct_at_least(recurring, "gap_to_future_low_pct", 0.5),
+        "future_1_cheaper_pct": pct_at_least(recurring, "gap_to_future_low_pct", 1.0),
         "avg_d1_vs_author_pct": mean(recurring, "d1_vs_author_pct"),
         "avg_d4_vs_author_pct": mean(recurring, "d4_vs_author_pct"),
         "d4_cheaper_pct": pct_below_zero(recurring, "d4_vs_author_pct"),
@@ -543,26 +552,25 @@ def daily_rows(campaign_day: str, campaign: list[Trade], prices: dict[str, list[
         atr = atr_at(bars, i)
         gain = current.close / trade.price - 1
         seen = bars[i + 1 : min(i + 4, len(bars))]
-        better = min((bar.low for bar in seen), default=current.low) <= trade.price
-        if completed < 3:
-            if current.close <= trade.price - 0.5 * atr:
-                action = "第二档：可考虑追加25%"
-            elif current.close <= trade.price:
-                action = "不高于作者价：可考虑25%–50%"
-            else:
-                action = "观察，等待作者价或0.5ATR回撤"
-            fraction = 0.25
-        elif completed == 3:
-            atr_pct = atr / trade.price if trade.price else 0
-            fraction = 1.0 if gain <= 0 else max(0.25, 1 - gain / max(0.0001, 2 * atr_pct))
-            action = f"D+4预案：若开盘相近，剩余目标执行{fraction:.0%}"
+        best = min((bar.low for bar in seen), default=current.low)
+        improvement = (trade.price / best - 1) * 100
+        better = improvement >= 0.5
+        if improvement >= 2:
+            triggered = "是：达到 -2%，目标仓位100%"
+        elif improvement >= 1:
+            triggered = "是：达到 -1%，目标仓位50%"
+        elif improvement >= 0.5:
+            triggered = "是：达到 -0.5%，目标仓位25%"
         else:
-            atr_pct = atr / trade.price if trade.price else 0
-            fraction = 1.0 if gain <= 0 else max(0.25, 1 - gain / max(0.0001, 2 * atr_pct))
-            action = f"D+4规则：剩余目标执行{fraction:.0%}" if completed == 4 else "本次三日窗口已关闭"
+            triggered = "否"
+        if completed <= 3:
+            action = "继续等到价提醒" if not better else "已出现买入提醒"
+        else:
+            action = "窗口结束，不追价"
         result.append({"symbol": trade.symbol, "author_price": trade.price, "current": current.close,
-                       "vs_author_pct": gain * 100, "better_seen": better, "atr": atr,
-                       "deploy_fraction": fraction, "action": action})
+                       "vs_author_pct": gain * 100, "better_seen": better, "best_3d": best,
+                       "improvement_pct": improvement, "triggered": triggered, "atr": atr,
+                       "action": action})
     return completed, result
 
 
@@ -595,32 +603,43 @@ def render_daily(summary: dict, campaign_day: str, completed: int, rows: list[di
         permission = "D+4 缩量预案"
     else:
         permission = "等待下一次新披露"
-    lines = [f"# Hi5 组合日报｜{p['as_of']}", "", "## 今日结论", "",
-             f"- 今日许可：**{permission}**", f"- 最近一次常规买入：{campaign_day}；当前 D+{completed}。",
-             f"- 独立行情验价通过率：{fmt_pct(summary['validation_rate_pct'])}；Sheet 收盘价最大偏差：{fmt_pct(summary['sheet_close_max_abs_diff_pct'])}。", "",
-             "## 本次买入跟踪", "", "| ETF | 作者价 | 最新价 | 相对作者 | 三日内出现更低价 | 今日动作 |", "|---|---:|---:|---:|---|---|"]
+    signal_count = sum(row["better_seen"] for row in rows)
+    if late_backfill:
+        direct_action = f"这是历史补录，不能现在追单。复盘结果：5只中有 {signal_count} 只曾出现至少便宜0.5%的买点。"
+    elif completed <= 3 and signal_count:
+        direct_action = f"有 {signal_count} 只 ETF 已达到更便宜的买入线，请看下表的分档仓位。"
+    elif completed <= 3:
+        direct_action = "尚未出现比作者便宜0.5%的价格，继续等提醒。"
+    else:
+        direct_action = "三日观察窗口已结束；没有新提醒就不追价，等待作者下一笔操作。"
+    lines = [f"# Hi5 跟单执行卡｜{p['as_of']}", "", "## 今天直接看这里", "",
+             f"**{direct_action}**", "",
+             f"作者最近买入：{campaign_day}｜进度：D+{completed}｜状态：{permission}", "",
+             "## 这次作者买入后，是否出现了更好的价格？", "",
+             "“更好价格”统一定义为：比作者成交价至少便宜 **0.5%**。触发后才通知，不把几分钱波动当机会。", "",
+             "| ETF | 作者价 | 历史上3日内便宜≥0.5%的概率 | 本次3日最低价 | 比作者便宜 | 是否触发买入提醒 |", "|---|---:|---:|---:|---:|---|"]
     for row in rows:
-        action = "历史回填，仅记录" if late_backfill else row["action"]
-        lines.append(f"| {row['symbol']} | {row['author_price']:.2f} | {row['current']:.2f} | {row['vs_author_pct']:+.2f}% | {'是' if row['better_seen'] else '否'} | {action} |")
+        probability = summary["by_symbol"].get(row["symbol"], {}).get("cheaper_0_5_pct")
+        trigger = row["triggered"] + ("（历史复盘）" if late_backfill and row["better_seen"] else "")
+        lines.append(f"| {row['symbol']} | ${row['author_price']:.2f} | {fmt_pct(probability)} | ${row['best_3d']:.2f} | {row['improvement_pct']:+.2f}% | {trigger} |")
+    lines += ["", "## 收到提醒后怎么做", "", "- 首次到 **-0.5%**：买入计划金额的 **25%**。", "- 继续到 **-1.0%**：累计买到 **50%**。", "- 继续到 **-2.0%**：累计买到 **100%**。", "- D+3 结束仍未触发：不机械追涨，等待下一次作者操作；日报只提示机会成本，不会自动下单。", "",
+              "## 历史依据（翻成一句话）", "",
+              f"作者过去常规买入后，未来3个交易日出现至少便宜0.5%的概率是 **{fmt_pct(summary['future_0_5_cheaper_pct'])}**，至少便宜1%的概率是 **{fmt_pct(summary['future_1_cheaper_pct'])}**。但机械等到D+4并不划算：只有 {fmt_pct(summary['d4_cheaper_pct'])} 的样本更便宜。", "",
+              "## 数据核验（附录，可跳过）", ""]
     stats = p.get("author_year_stats", {})
     bridge = stats.get("current_mv", 0) - stats.get("prior_year_end_mv", 0) - stats.get("year_net_input", 0) + stats.get("year_net_dividends", 0)
-    lines += ["", "## 组合核验", "", f"- Sheet ETF 市值（{p['sheet_date']}）：${p['sheet_market_value']:,.2f}；同日独立收盘重估：${p['independent_sheet_date_market_value']:,.2f}。最新独立估值（{p['as_of']}）：${p['independent_market_value']:,.2f}。",
+    lines += [f"- 独立行情验价：{summary['validated_transactions']}/{summary['transactions']} 笔通过（{fmt_pct(summary['validation_rate_pct'])}）；Sheet 收盘价最大偏差 {fmt_pct(summary['sheet_close_max_abs_diff_pct'])}。",
+              f"- Sheet ETF 市值（{p['sheet_date']}）：${p['sheet_market_value']:,.2f}；同日独立收盘重估：${p['independent_sheet_date_market_value']:,.2f}。最新独立估值（{p['as_of']}）：${p['independent_market_value']:,.2f}。",
               f"- 累计净买入：${p['net_investment']:,.2f}；毛股息：${p['gross_dividends']:,.2f}；预扣税：${p['withholding_tax']:,.2f}。",
               f"- 作者公式总值（ETF市值+毛股息）：${p['author_total_value_formula']:,.2f}；该数不是可核验的券商现金总资产。",
               f"- 2026 年净收益桥接复算：${bridge:,.2f}；Sheet 声称：${stats.get('year_net_income', 0):,.2f}。",
-              f"- 作者式 CAGR：{fmt_pct(None if p['author_formula_cagr'] is None else p['author_formula_cagr']*100)}；假设逐笔外部现金流的 XIRR：{fmt_pct(None if p['estimated_xirr'] is None else p['estimated_xirr']*100)}。TWR 因缺少完整出入金/现金余额不可计算。", "",
-              "## 规则触发跟踪", ""]
+              f"- 作者式 CAGR：{fmt_pct(None if p['author_formula_cagr'] is None else p['author_formula_cagr']*100)}；假设逐笔外部现金流的 XIRR：{fmt_pct(None if p['estimated_xirr'] is None else p['estimated_xirr']*100)}。TWR 因缺少完整出入金/现金余额不可计算。"]
     rsp = summary["current_rsp_state"]
     audit = summary["rsp_rule_audit"]
     lines += [f"- RSP 本月涨跌：{rsp['month_change_pct']:+.2f}%；-1% 首次日跌触发：{rsp['minus1_trigger_date'] or '未触发'}；-5% 月跌触发：{rsp['minus5_trigger_date'] or '未触发'}。",
               f"- 本月第三个周五：{rsp['third_friday']}，估算还剩 {rsp['estimated_sessions_to_third_friday']} 个交易日；已记录买入：{', '.join(rsp['logged_campaigns_this_month']) or '无'}。",
-              f"- 2025 年起可机械核验 {audit['mechanical_campaigns']} 次，规则匹配 {audit['matched_mechanical']} 次（{fmt_pct(audit['match_rate_pct'])}）；第三笔主观买入不计入匹配率。", "",
-              "## 历史三日择时", "", f"- 常规批次：{summary['recurring_campaigns']} 次；逐 ETF 样本：{summary['recurring_trades']} 笔。",
-              f"- 买价距后3日最低点不超过 0.5% / 1% / 2%：{fmt_pct(summary['near_low_0_5_pct'])} / {fmt_pct(summary['near_low_1_pct'])} / {fmt_pct(summary['near_low_2_pct'])}。",
-              f"- 后3日曾出现更低价：{fmt_pct(summary['future_lower_price_seen_pct'])}；平均/中位可改善空间：{fmt_pct(summary['avg_gap_to_future_low_pct'])} / {fmt_pct(summary['median_gap_to_future_low_pct'])}；三日高位代理：{fmt_pct(summary['stage_high_proxy_pct'])}。",
-              f"- 20日阶段高点代理（买价距前20日高点≤2%，随后20日回撤≥5%）：{fmt_pct(summary['stage_high_20d_proxy_pct'])}，有效样本 {summary['stage_high_20d_n']} 笔。",
-              f"- D+1 开盘 / D+4 开盘 / 分档策略平均相对作者价：{fmt_pct(summary['avg_d1_vs_author_pct'])} / {fmt_pct(summary['avg_d4_vs_author_pct'])} / {fmt_pct(summary['avg_staged_vs_author_pct'])}。D+4 更便宜的比例仅 {fmt_pct(summary['d4_cheaper_pct'])}，所以不采用机械等待。", "",
-              "## 失效条件", "", "- 新交易首次被监控发现时已经晚于 D+3：只记录，不追溯宣称可执行。", "- 成交价无法落在独立日内区间、行情覆盖不足95%、或 Sheet 口径发生变化：不新增风险。", "- 本报告只提供研究与观察档位，不会自动下单。", ""]
+              f"- 2025 年起可机械核验 {audit['mechanical_campaigns']} 次，规则匹配 {audit['matched_mechanical']} 次（{fmt_pct(audit['match_rate_pct'])}）；第三笔主观买入不计入匹配率。",
+              "- 新交易首次发现若已经晚于 D+3，只做历史记录；数据覆盖低于95%时不发买入提醒。", ""]
     return "\n".join(lines)
 
 

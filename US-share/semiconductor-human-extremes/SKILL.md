@@ -24,7 +24,7 @@ Always read:
 
 1. Run the collector and retry once only if it fails.
 2. Verify that at least 75% of SOXX constituent weight has valid 200-day price history and that SOXX, SMH, SOXL and SOXS are fresh.
-3. Lead with the state, then show SOXX 20/50/200-day breadth-position bars, the independent SMH equal-weight reference-basket breadth, cap-weight breadth, top-five versus remainder breadth, SOXX/SMH/SOX trend, DRAM memory-subindustry state, and the SOXL/SOXX proxy.
+3. Lead with the state, then show SOXX 5/10/20/50/200-day breadth-position bars, the independent SMH equal-weight reference-basket breadth, cap-weight breadth, top-five versus remainder breadth, SOXX/SMH/SOX trend, DRAM memory-subindustry state, and the SOXL/SOXX proxy. Treat 5/10-day values as repair-speed observations rather than independent extreme triggers.
 4. Treat `20 日宽度 ≤15%` as a short-term washout/bottom candidate. Mark a confirmed improvement only after a recent washout, SOXX and SOX regain their 5-day averages, and 20-day breadth rebounds by at least 5 percentage points from the prior trading day.
 5. Use SOXX/SMH option put/call volume, IV rank and 25-delta skew, plus SOXL/SOXS relative volume and leverage performance, as sector-specific sentiment confirmation. Use AAII, NAAIM, VIX and broad-market breadth only as a bonus layer—not as a prerequisite for a semiconductor bottom.
 6. Interpret strong price plus low volatility as normal unless breadth saturation/concentration and leverage appetite also point to crowding.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "科创50人性极端"
+  short_description: "跟踪科创50成分股宽度与科技风险情绪变化"
+  default_prompt: "Use $star50-human-extremes to generate today’s 科创50 human-extremes report."

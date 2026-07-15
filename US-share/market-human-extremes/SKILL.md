@@ -28,14 +28,14 @@ Read both references before interpretation:
 
 1. Use `Asia/Shanghai` as report date and the most recently completed U.S. session; never present intraday data as a confirmed signal.
 2. Run the collector. On failure, retry once. If it still fails, share only the fail-closed report; never recycle an old extreme signal.
-3. Verify AAII, NAAIM, SPY, QQQ, IWM, VIX, and all nine TradingView breadth readings before calling an extreme. Render breadth as a temperature gauge rather than a raw list of numbers.
+3. Verify AAII, NAAIM, SPY, QQQ, IWM, VIX, and all available TradingView breadth readings before calling an extreme. Render 5/20/50/200-day breadth as a temperature gauge rather than a raw list of numbers; keep 10-day breadth explicitly `UNAVAILABLE` until a constituent-level source is added.
 4. Apply all five layers in the framework: retail mood, active-manager exposure, price structure, breadth, and volatility. Keep disagreement as `信号分歧`.
 5. Lead with the state and risk discipline. Suggest risk-budget actions such as avoid chasing, rebalance, or wait for confirmation; never issue an order, target price, or position size.
 
 ## Non-negotiable rules
 
 - AAII and NAAIM are weekly. Repeat only fresh observations on a daily report and always show their dates.
-- The TradingView layout uses `INDEX:S5TH/S5FI/S5TW`, `INDEX:NDTH/NDFI/NDTW`, and `INDEX:R2TH/R2FI/R2TW`. They respectively measure the percentage of S&P 500, Nasdaq-100, and Russell 2000 constituents above their 200/50/20-day averages. Treat them as breadth confirmation, not a stand-alone trading system.
+- The TradingView layout uses `INDEX:S5FD/S5TW/S5FI/S5TH`, `INDEX:NDFD/NDTW/NDFI/NDTH`, and `INDEX:R2FD/R2TW/R2FI/R2TH`. They respectively measure the percentage of S&P 500, Nasdaq-100, and Russell 2000 constituents above their 5/20/50/200-day averages. TradingView provides no matching public 10-day breadth series; do not fabricate one.
 - A `顶部` state is a risk-control alert, not a short signal. A `底部` state is a watch state, not a catch-the-falling-knife instruction.
 - If AAII, NAAIM, price, VIX, or any required breadth reading is stale/unavailable, output `数据不足 / 不作极端判断`.
 - Do not place trades or imply certainty.

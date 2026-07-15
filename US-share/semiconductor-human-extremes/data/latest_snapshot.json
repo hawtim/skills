@@ -4,6 +4,24 @@
   "metrics": {
     "today": "2026-07-15",
     "breadth": {
+      "5": {
+        "equal": 0.0,
+        "weighted": 0.0,
+        "coverage": 100.0,
+        "top5": 0.0,
+        "rest": 0.0,
+        "above_count": 0,
+        "valid_count": 30
+      },
+      "10": {
+        "equal": 6.666666666666667,
+        "weighted": 15.197911788987021,
+        "coverage": 100.0,
+        "top5": 40.0,
+        "rest": 0.0,
+        "above_count": 2,
+        "valid_count": 30
+      },
       "20": {
         "equal": 10.0,
         "weighted": 23.8274542147358,
@@ -38,7 +56,7 @@
         "date": "2026-07-13",
         "ma5": 566.0740112304687,
         "ma50": 560.141968383789,
-        "ma200": 385.0865191650391,
+        "ma200": 385.0865188598633,
         "return20": -5.632210420282702,
         "drawdown": -15.480683180757094
       },
@@ -56,7 +74,7 @@
         "date": "2026-07-13",
         "ma5": 550.80400390625,
         "ma50": 578.4648828125,
-        "ma200": 403.37767639160154,
+        "ma200": 403.37767700195315,
         "return20": -10.039519763048988,
         "drawdown": -17.261498102013682
       },
@@ -74,18 +92,18 @@
         "date": "2026-07-13",
         "ma5": 4.420000076293945,
         "ma50": 6.477756433486938,
-        "ma200": 33.47491472482681,
+        "ma200": 33.47491476297378,
         "return20": -5.34869857041137,
         "drawdown": -95.1184225512232
       },
       "DRAM": {
-        "close": 57.29999923706055,
-        "date": "2026-07-13",
-        "ma5": 61.466000366210935,
-        "ma50": 60.45240013122559,
+        "close": 61.22999954223633,
+        "date": "2026-07-14",
+        "ma5": 61.594000244140624,
+        "ma50": 60.890400085449215,
         "ma200": null,
-        "return20": -12.008604391424004,
-        "drawdown": -29.01387714255361
+        "return20": -5.81449387753138,
+        "drawdown": -24.14519497488311
       },
       "^SOX": {
         "close": 12347.7802734375,
@@ -98,6 +116,24 @@
       }
     },
     "smh_breadth": {
+      "5": {
+        "equal": 0.0,
+        "weighted": 0.0,
+        "coverage": 100.0,
+        "top5": 0.0,
+        "rest": 0.0,
+        "above_count": 0,
+        "valid_count": 25
+      },
+      "10": {
+        "equal": 8.0,
+        "weighted": 8.0,
+        "coverage": 100.0,
+        "top5": 40.0,
+        "rest": 0.0,
+        "above_count": 2,
+        "valid_count": 25
+      },
       "20": {
         "equal": 12.0,
         "weighted": 12.0,
@@ -128,8 +164,8 @@
     },
     "dram_state": "存储子行业压力 / 偏底部",
     "soxl_soxx_20d": -21.76442285936765,
-    "soxl_relative_volume": 0.9401047671790029,
-    "soxs_relative_volume": 0.866594189033556,
+    "soxl_relative_volume": 0.9566441819716929,
+    "soxs_relative_volume": 0.8814171607022546,
     "previous_b20": null,
     "prior_washout": false,
     "broad_confirmation": {
@@ -152,9 +188,9 @@
         "date": "2026-07-13"
       },
       "breadth20": [
-        63.02,
-        54.36,
-        56.3
+        56.85,
+        47.57,
+        53.74
       ],
       "signals": {
         "AAII 极端看空": false,
@@ -167,52 +203,52 @@
     "option_sentiment": {
       "underlyings": {
         "SOXX": {
-          "call_volume": 7798.0,
-          "put_volume": 14776.0,
+          "call_volume": 10920.0,
+          "put_volume": 26856.0,
           "call_open_interest": 173177.0,
           "put_open_interest": 290785.0,
-          "iv": 68.117,
-          "iv_rank": 94.519,
-          "iv_percentile": 96.031,
-          "skew_25d": 10.678,
+          "iv": 67.174,
+          "iv_rank": 92.55,
+          "iv_percentile": 94.444,
+          "skew_25d": 5.897,
           "skew_expiry": "2026-08-14",
-          "skew_asof": "2026-07-14 10:27:15"
+          "skew_asof": "2026-07-14 15:09:03"
         },
         "SMH": {
-          "call_volume": 50491.0,
-          "put_volume": 71977.0,
+          "call_volume": 69876.0,
+          "put_volume": 116496.0,
           "call_open_interest": 663594.0,
           "put_open_interest": 1708205.0,
-          "iv": 61.041,
-          "iv_rank": 95.843,
-          "iv_percentile": 96.825,
-          "skew_25d": 8.736,
+          "iv": 61.061,
+          "iv_rank": 95.896,
+          "iv_percentile": 97.222,
+          "skew_25d": 6.581,
           "skew_expiry": "2026-08-14",
-          "skew_asof": "2026-07-14 11:13:50"
+          "skew_asof": "2026-07-14 15:37:54"
         },
         "SOXL": {
-          "call_volume": 51237.0,
-          "put_volume": 106813.0,
+          "call_volume": 61807.0,
+          "put_volume": 128658.0,
           "call_open_interest": 421874.0,
           "put_open_interest": 768549.0,
-          "iv": 186.173,
-          "iv_rank": 94.102,
-          "iv_percentile": 96.428
+          "iv": 184.322,
+          "iv_rank": 92.491,
+          "iv_percentile": 95.238
         },
         "SOXS": {
-          "call_volume": 82340.0,
-          "put_volume": 43696.0,
+          "call_volume": 100306.0,
+          "put_volume": 49092.0,
           "call_open_interest": 817218.0,
           "put_open_interest": 328693.0,
-          "iv": 194.284,
-          "iv_rank": 93.146,
-          "iv_percentile": 97.222
+          "iv": 188.062,
+          "iv_rank": 88.275,
+          "iv_percentile": 92.857
         }
       },
       "soxx_capital_flow": {
-        "net_flow": null,
-        "asof": "2026-07-14 14:13:00",
-        "is_final": false
+        "net_flow": -118656360.476,
+        "asof": "2026-07-14 16:00:00",
+        "is_final": true
       }
     }
   },

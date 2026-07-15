@@ -160,7 +160,7 @@ def breadth(holdings: list[dict], prices: dict[str, Series], days: int) -> dict:
 def smh_breadth(prices: dict[str, Series]) -> dict:
     """Compute an independent, equal-weight SMH reference-basket breadth."""
     holdings = [{"ticker": ticker, "weight_pct": 100 / len(SMH_BREADTH_TICKERS)} for ticker in SMH_BREADTH_TICKERS]
-    return {days: breadth(holdings, prices, days) for days in (20, 50, 200)}
+    return {days: breadth(holdings, prices, days) for days in (5, 10, 20, 50, 200)}
 
 
 def dram_state(series: Series) -> str:
@@ -304,7 +304,8 @@ def classify(metrics: dict) -> tuple[str, list[str], str]:
     price_repaired = soxx["close"] >= soxx["ma5"] and sox["close"] >= sox["ma5"]
     recent_washout = short_washout or prior_washout
     broad_score = metrics.get("broad_confirmation", {}).get("score") if metrics.get("broad_confirmation", {}).get("available") else None
-    evidence = [f"SOXX 距 252 日高点 {soxx['drawdown']:.2f}% / SMH {smh['drawdown']:.2f}% / SOX {sox['drawdown']:.2f}%", f"等权宽度：20 日 {b20['equal']:.1f}%（{b20['above_count']}/{b20['valid_count']}）｜50 日 {b50['equal']:.1f}%（{b50['above_count']}/{b50['valid_count']}）｜200 日 {b200['equal']:.1f}%（{b200['above_count']}/{b200['valid_count']}）", f"权重宽度：20 日 {b20['weighted']:.1f}%｜50 日 {b50['weighted']:.1f}%｜200 日 {b200['weighted']:.1f}%", f"50 日龙头差（前五大 - 其余）{leadership_gap:+.1f}pct", f"SOXL/SOXX 20 日变化 {fmt(leverage, '%')}（杠杆情绪代理）", f"短线洗出：{'是' if short_washout else '否'}｜价格修复：{'是' if price_repaired else '否'}｜20 日宽度回升：{'是' if breadth_rebound else '否'}", f"大盘人性确认层：{'UNAVAILABLE' if broad_score is None else f'{broad_score}/4（仅加分，不是必要条件）'}"]
+    b5, b10 = metrics["breadth"][5], metrics["breadth"][10]
+    evidence = [f"SOXX 距 252 日高点 {soxx['drawdown']:.2f}% / SMH {smh['drawdown']:.2f}% / SOX {sox['drawdown']:.2f}%", f"等权宽度：5 日 {b5['equal']:.1f}%｜10 日 {b10['equal']:.1f}%｜20 日 {b20['equal']:.1f}%（{b20['above_count']}/{b20['valid_count']}）｜50 日 {b50['equal']:.1f}%（{b50['above_count']}/{b50['valid_count']}）｜200 日 {b200['equal']:.1f}%（{b200['above_count']}/{b200['valid_count']}）", f"权重宽度：5 日 {b5['weighted']:.1f}%｜10 日 {b10['weighted']:.1f}%｜20 日 {b20['weighted']:.1f}%｜50 日 {b50['weighted']:.1f}%｜200 日 {b200['weighted']:.1f}%", f"50 日龙头差（前五大 - 其余）{leadership_gap:+.1f}pct", f"SOXL/SOXX 20 日变化 {fmt(leverage, '%')}（杠杆情绪代理）", f"短线洗出：{'是' if short_washout else '否'}｜价格修复：{'是' if price_repaired else '否'}｜20 日宽度回升：{'是' if breadth_rebound else '否'}", f"大盘人性确认层：{'UNAVAILABLE' if broad_score is None else f'{broad_score}/4（仅加分，不是必要条件）'}"]
     if option_fear: evidence.append("行业期权恐慌确认：SOXX、SMH Put/Call 成交比 ≥1.25 且 IV Rank ≥80。")
     if trend_up and (saturated or fragile) and leveraged_long:
         return "半导体顶部人性极端（警戒）", evidence, "停止追高，检查行业集中度和杠杆；这不是做空指令。"
@@ -328,19 +329,29 @@ def build_report(metrics: dict, state: str, evidence: list[str], action: str, er
     today = metrics["today"]
     b = metrics.get("breadth", {})
     lines = [f"# 半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", action, "", "## 证据", ""] + [f"- {item}" for item in evidence]
-    lines += ["", "## 宽度位置（像图中 15%／85% 的读法）", "", "这里的百分比是 **SOXX 成分股中站上对应均线的比例**，不是价格的历史百分位。`┊` 是极端线，`●` 是当前位置。", "", "| 周期 | 等权读数（股票数） | 位置图（0% → 100%） | 极端线 | 当前区间 | 权重宽度 | 覆盖权重 |", "|---|---:|---|---|---|---:|---:|"]
+    lines += ["", "## 宽度位置（像图中 15%／85% 的读法）", "", "这里的百分比是 **SOXX 成分股中站上对应均线的比例**，不是价格的历史百分位。5/10 日用于观察短线修复速度，不单独作为人性极端阈值。`┊` 是极端线，`●` 是当前位置。", "", "| 周期 | 等权读数（股票数） | 位置图（0% → 100%） | 极端线 | 当前区间 | 权重宽度 | 覆盖权重 |", "|---|---:|---|---|---|---:|---:|"]
     bounds = {20: (15, 85), 50: (25, 80), 200: (15, 85)}
-    for days in (20, 50, 200):
+    for days in (5, 10, 20, 50, 200):
         if days not in b:
             lines.append(f"| {days} 日 | UNAVAILABLE | UNAVAILABLE | — | 数据不足 | UNAVAILABLE | UNAVAILABLE |")
             continue
-        item, (low, high) = b[days], bounds[days]
+        item = b[days]
+        if days not in bounds:
+            count = f"{item['above_count']}/{item['valid_count']}" if item['equal'] is not None else "—"
+            lines.append(f"| {days} 日 | {fmt(item['equal'], '%')}（{count}） | — | 观察值 | 短线修复速度 | {fmt(item['weighted'], '%')} | {fmt(item['coverage'], '%')} |")
+            continue
+        low, high = bounds[days]
         count = f"{item['above_count']}/{item['valid_count']}" if item['equal'] is not None else "—"
         lines.append(f"| {days} 日 | {fmt(item['equal'], '%')}（{count}） | `{gauge(item['equal'], low, high)}` | {low}% / {high}% | {breadth_zone(item['equal'], low, high)} | {fmt(item['weighted'], '%')} | {fmt(item['coverage'], '%')} |")
     smh_b = metrics.get("smh_breadth", {})
     lines += ["", "## SMH 独立宽度（龙头权重层）", "", "SMH 宽度与 SOXX 分开计算，用于识别“只有龙头在修复 / 抛压”。因 VanEck 持仓网页在无人值守环境受 cookie 限制，当前使用 25 只流动性龙头参考篮子的**等权**宽度；不伪装成 SMH 官方权重宽度。", "", "| 周期 | 等权读数（股票数） | 位置图 | 当前区间 |", "|---|---:|---|---|"]
-    for days in (20, 50, 200):
-        item, (low, high) = smh_b.get(days, {}), bounds[days]
+    for days in (5, 10, 20, 50, 200):
+        item = smh_b.get(days, {})
+        if days not in bounds:
+            count = f"{item.get('above_count', '—')}/{item.get('valid_count', '—')}" if item else "—"
+            lines.append(f"| {days} 日 | {fmt(item.get('equal'), '%')}（{count}） | — | 短线修复速度 |")
+            continue
+        low, high = bounds[days]
         count = f"{item.get('above_count', '—')}/{item.get('valid_count', '—')}" if item else "—"
         lines.append(f"| {days} 日 | {fmt(item.get('equal'), '%')}（{count}） | `{gauge(item.get('equal'), low, high)}` | {breadth_zone(item.get('equal'), low, high)} |")
     lines += ["", "- 解读：SOXX 很弱而 SMH 较强，通常表示少数大市值龙头支撑；两者同步低于 15%，才是更广泛的行业洗出。"]
@@ -382,7 +393,7 @@ def run() -> int:
         prices, price_errors = fetch_prices([x["ticker"] for x in holdings] + list(SMH_BREADTH_TICKERS) + list(PRICE_TICKERS)); errors.extend(price_errors)
     metrics = {"today": today, "breadth": {}, "etf": {}}
     try:
-        metrics["breadth"] = {days: breadth(holdings, prices, days) for days in (20, 50, 200)}
+        metrics["breadth"] = {days: breadth(holdings, prices, days) for days in (5, 10, 20, 50, 200)}
         metrics["smh_breadth"] = smh_breadth(prices)
         metrics["etf"] = {ticker: etf_metrics(prices[ticker]) for ticker in PRICE_TICKERS}
         metrics["dram_state"] = dram_state(prices["DRAM"])
@@ -422,7 +433,7 @@ def run() -> int:
 def self_test():
     today = date(2026, 7, 15)
     etf = {ticker: {"close": 100., "date": date(2026, 7, 14), "ma5": 98., "ma50": 95., "ma200": 90., "return20": 4., "drawdown": -2.} for ticker in PRICE_TICKERS}
-    broad = {n: {"equal": 90., "weighted": 90., "coverage": 100., "top5": 100., "rest": 85., "above_count": 27, "valid_count": 30} for n in (20, 50, 200)}
+    broad = {n: {"equal": 90., "weighted": 90., "coverage": 100., "top5": 100., "rest": 85., "above_count": 27, "valid_count": 30} for n in (5, 10, 20, 50, 200)}
     assert classify({"today": today, "breadth": broad, "etf": etf, "soxl_soxx_20d": 15.})[0] == "半导体顶部人性极端（警戒）"
     broad[20]["coverage"] = 50.
     assert classify({"today": today, "breadth": broad, "etf": etf, "soxl_soxx_20d": 15.})[0] == "数据不足 / 不作极端判断"

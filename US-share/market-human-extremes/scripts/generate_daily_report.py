@@ -30,9 +30,9 @@ NAAIM = "https://naaim.org/programs/naaim-exposure-index/"
 YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=1y&interval=1d&events=history"
 TV_HOST = "data.tradingview.com"
 TV_BREADTH = {
-    "S&P 500": {20: "INDEX:S5TW", 50: "INDEX:S5FI", 200: "INDEX:S5TH"},
-    "Nasdaq-100": {20: "INDEX:NDTW", 50: "INDEX:NDFI", 200: "INDEX:NDTH"},
-    "Russell 2000": {20: "INDEX:R2TW", 50: "INDEX:R2FI", 200: "INDEX:R2TH"},
+    "S&P 500": {5: "INDEX:S5FD", 20: "INDEX:S5TW", 50: "INDEX:S5FI", 200: "INDEX:S5TH"},
+    "Nasdaq-100": {5: "INDEX:NDFD", 20: "INDEX:NDTW", 50: "INDEX:NDFI", 200: "INDEX:NDTH"},
+    "Russell 2000": {5: "INDEX:R2FD", 20: "INDEX:R2TW", 50: "INDEX:R2FI", 200: "INDEX:R2TH"},
 }
 
 
@@ -241,7 +241,7 @@ def decide(aaii, naaim, market, breadth, today: date):
     vix_top, vix_bottom = market["VIX"]["close"] <= 18, market["VIX"]["close"] >= 20
     breadth_top = all(periods[20]["value"] >= 85 and periods[50]["value"] >= 80 for periods in breadth.values())
     breadth_bottom = all(periods[20]["value"] <= 15 and periods[50]["value"] <= 25 for periods in breadth.values())
-    b_line = "｜".join(f"{name} 20/50/200={periods[20]['value']:.1f}/{periods[50]['value']:.1f}/{periods[200]['value']:.1f}%" for name, periods in breadth.items())
+    b_line = "｜".join(f"{name} 5/20/50/200={periods[5]['value']:.1f}/{periods[20]['value']:.1f}/{periods[50]['value']:.1f}/{periods[200]['value']:.1f}%" for name, periods in breadth.items())
     evidence = [f"AAII 多空差 {spread:+.1f}pct", f"NAAIM 曝险 {naaim['exposure']:.2f}", f"SPY 20 日变化 {fmt(market['SPY']['change20'], '%')}，距 252 日高点 {fmt(market['SPY']['drawdown'], '%')}", f"VIX {market['VIX']['close']:.2f}", "宽度：" + b_line]
     top_count, bottom_count = sum((retail_top, manager_top, price_top, vix_top, breadth_top)), sum((retail_bottom, manager_bottom, price_bottom, vix_bottom, breadth_bottom))
     if retail_top and manager_top and price_top and vix_top and breadth_top: return "顶部人性极端（警戒）", evidence, "停止追高，按既定再平衡纪律检查集中度与杠杆；这不是做空信号。"
@@ -268,14 +268,14 @@ def report(today, aaii, naaim, market, breadth, state, evidence, action, errors)
     for s in ("SPY", "QQQ", "IWM"):
         lines.append(f"| {s} 收盘 / 20 日变化 / 252 日回撤 | {fmt(market[s]['close'])} / {fmt(market[s]['change20'], '%')} / {fmt(market[s]['drawdown'], '%')} | {market[s]['date']} |" if market else f"| {s} | UNAVAILABLE | — |")
     lines.append(f"| VIX | {fmt(market['VIX']['close'])} | {market['VIX']['date']} |" if market else "| VIX | UNAVAILABLE | — |")
-    lines += ["", "## 宽度温度计（0% → 100%）", "", "宽度是 **指数成分股中站上对应均线的比例**，不是价格的历史百分位。`┊` 为极端线，`●` 为当前位置；20/200 日使用 15%／85%，50 日使用 25%／80%。", "", "| 市场 | 20 日宽度 | 20 日位置 | 50 日宽度 | 50 日位置 | 200 日宽度 | 200 日位置 |", "|---|---:|---|---:|---|---:|---|"]
+    lines += ["", "## 宽度温度计（0% → 100%）", "", "宽度是 **指数成分股中站上对应均线的比例**，不是价格的历史百分位。TradingView 公开指数可核验 5/20/50/200 日；没有对应的 10 日公开指数，因此 10 日明确标为 `UNAVAILABLE`，不会用代理值替代。`┊` 为极端线，`●` 为当前位置；20/200 日使用 15%／85%，50 日使用 25%／80%。", "", "| 市场 | 5 日 | 10 日 | 20 日位置 | 50 日位置 | 200 日位置 |", "|---|---:|---:|---|---|---|"]
     for name in TV_BREADTH:
         periods = breadth.get(name) if breadth else None
         if not periods:
-            lines.append(f"| {name} | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |")
+            lines.append(f"| {name} | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |")
             continue
-        lines.append(f"| {name} | {periods[20]['value']:.2f}%（{breadth_zone(periods[20]['value'])}） | `{gauge(periods[20]['value'])}` | {periods[50]['value']:.2f}%（{breadth_zone(periods[50]['value'], 25, 80)}） | `{gauge(periods[50]['value'], 25, 80)}` | {periods[200]['value']:.2f}%（{breadth_zone(periods[200]['value'])}） | `{gauge(periods[200]['value'])}` |")
-    lines += ["", "## 怎么读", "", "- 20 日最敏感：≤15% 表示短线普遍洗出，≥85% 表示短线参与面普遍拥挤。", "- 50 日确认中期参与度；大盘顶部／底部的升级要求三个市场的 20 日与 50 日宽度同时同向极端。", "- 200 日用于长期结构：高位表示长期趋势仍有广泛支撑，不能单独视为卖出信号。", "", "## 普通投资者的纪律", "", "- 顶部警戒：不追高、不加杠杆；不是做空指令。", "- 底部观察：不因恐慌单独抄底，等待价格修复。", "", "## 数据质量与来源", "", f"- AAII：{AAII if aaii else 'UNAVAILABLE'}", f"- NAAIM：{NAAIM if naaim else 'UNAVAILABLE'}", "- 价格：Yahoo Finance chart JSON；宽度：TradingView `INDEX:*` 公开报价流。"]
+        lines.append(f"| {name} | {periods[5]['value']:.2f}% | UNAVAILABLE | {periods[20]['value']:.2f}% `{gauge(periods[20]['value'])}` | {periods[50]['value']:.2f}% `{gauge(periods[50]['value'], 25, 80)}` | {periods[200]['value']:.2f}% `{gauge(periods[200]['value'])}` |")
+    lines += ["", "## 怎么读", "", "- 5 日反映极短线抛压或修复速度；它不单独触发人性极端判断。", "- 10 日：当前官方公开宽度源未提供，保持 UNAVAILABLE。", "- 20 日最敏感：≤15% 表示短线普遍洗出，≥85% 表示短线参与面普遍拥挤。", "- 50 日确认中期参与度；大盘顶部／底部的升级要求三个市场的 20 日与 50 日宽度同时同向极端。", "- 200 日用于长期结构：高位表示长期趋势仍有广泛支撑，不能单独视为卖出信号。", "", "## 普通投资者的纪律", "", "- 顶部警戒：不追高、不加杠杆；不是做空指令。", "- 底部观察：不因恐慌单独抄底，等待价格修复。", "", "## 数据质量与来源", "", f"- AAII：{AAII if aaii else 'UNAVAILABLE'}", f"- NAAIM：{NAAIM if naaim else 'UNAVAILABLE'}", "- 价格：Yahoo Finance chart JSON；宽度：TradingView `INDEX:*` 公开报价流。"]
     if errors: lines += ["", "### 采集错误", ""] + [f"- {x}" for x in errors]
     return "\n".join(lines) + "\n"
 
@@ -315,7 +315,7 @@ def self_test():
     aaii = {"date": date(2026, 7, 9), "bullish": 50., "neutral": 20., "bearish": 30., "source": "test"}; naaim = {"date": date(2026, 7, 8), "exposure": 90., "source": "test"}
     line = {"close": 100., "date": date(2026, 7, 14), "ma5": 99., "ma50": 95., "ma200": 90., "change20": 3., "drawdown": -2.}
     market = {"SPY": line, "QQQ": line.copy(), "IWM": line.copy(), "VIX": {"close": 15., "date": date(2026, 7, 14)}}
-    breadth = {name: {days: {"value": 90., "date": date(2026, 7, 14)} for days in (20, 50, 200)} for name in TV_BREADTH}
+    breadth = {name: {days: {"value": 90., "date": date(2026, 7, 14)} for days in (5, 20, 50, 200)} for name in TV_BREADTH}
     assert decide(aaii, naaim, market, breadth, today)[0] == "顶部人性极端（警戒）"
     market["VIX"]["date"] = date(2026, 7, 1); assert decide(aaii, naaim, market, breadth, today)[0] == "数据不足 / 不作极端判断"
 

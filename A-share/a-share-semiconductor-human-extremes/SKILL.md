@@ -11,6 +11,8 @@ Run the deterministic collector:
 python3 /Users/icemelon/Documents/invest/hawtim-skills/A-share/a-share-semiconductor-human-extremes/scripts/generate_daily_report.py
 ```
 
+For a marked real-time snapshot during A-share trading hours, run `--intraday`. It writes a time-stamped report and never overwrites the close-history ledger.
+
 Always read `references/framework.md` before interpreting the output.
 
 ## Rules

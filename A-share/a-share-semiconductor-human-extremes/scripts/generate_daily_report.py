@@ -64,7 +64,7 @@ def tencent_code(code: str) -> str:
 def futu_code(ticker: str) -> str:
     return ticker[:2].upper() + "." + ticker[2:]
 
-def series(code: str) -> dict:
+def series(code: str, include_intraday: bool = False) -> dict:
     try: payload = json.loads(fetch_text(TENCENT.format(code=code)))
     except Exception as exc: raise SourceUnavailable(f"腾讯日线请求失败（{type(exc).__name__}）") from exc
     node = payload.get("data", {}).get(code, {})
@@ -76,17 +76,17 @@ def series(code: str) -> dict:
             if math.isfinite(close): clean.append((day, close, vol))
         except (IndexError, ValueError, TypeError): pass
     if not clean: raise SourceUnavailable("腾讯无可用前复权日线")
-    # Tencent may expose a partial current-session candle before the A-share
-    # close.  A daily monitor must not turn that fragment into a fake close.
+    # The regular daily monitor excludes a partial session.  Intraday mode
+    # deliberately retains it as a marked real-time breadth snapshot.
     now = datetime.now(TZ)
-    if clean and clean[-1][0] == now.date() and (now.hour, now.minute) < (15, 10): clean.pop()
+    if not include_intraday and clean and clean[-1][0] == now.date() and (now.hour, now.minute) < (15, 10): clean.pop()
     # A stock can participate in the 20-day breadth as soon as it has 20
     # completed closes; 50/200-day participation is determined separately in
     # breadth().  Newly listed shares with fewer than 20 closes are excluded.
     if len(clean) < 20: raise HistoryInsufficient(f"上市历史仅 {len(clean)} 个交易日，不足 20 日")
     return {"dates": [x[0] for x in clean], "closes": [x[1] for x in clean], "volumes": [x[2] for x in clean]}
 
-def futu_series(code: str) -> dict:
+def futu_series(code: str, include_intraday: bool = False) -> dict:
     # OpenD permits 60 historical-K requests per 30 seconds.  Space starts at
     # 0.62s (under 49/30s) so this source can safely carry the whole plate if
     # Tencent's public endpoint is behind its WAF.
@@ -104,20 +104,20 @@ def futu_series(code: str) -> dict:
         try: clean.append((date.fromisoformat(str(row["time"])[:10]), float(row["close"]), float(row.get("volume", 0))))
         except (KeyError, ValueError, TypeError): pass
     now = datetime.now(TZ)
-    if clean and clean[-1][0] == now.date() and (now.hour, now.minute) < (15, 10): clean.pop()
+    if not include_intraday and clean and clean[-1][0] == now.date() and (now.hour, now.minute) < (15, 10): clean.pop()
     if len(clean) < 20: raise HistoryInsufficient(f"富途历史仅 {len(clean)} 个交易日，不足 20 日")
     return {"dates": [x[0] for x in clean], "closes": [x[1] for x in clean], "volumes": [x[2] for x in clean], "source": "Futu fallback"}
 
-def stock_series(tencent_ticker: str, futu_code: str, tencent_enabled: bool = True) -> dict:
+def stock_series(tencent_ticker: str, futu_code: str, tencent_enabled: bool = True, include_intraday: bool = False) -> dict:
     primary = None
     if tencent_enabled:
-        try: return series(tencent_ticker)
+        try: return series(tencent_ticker, include_intraday)
         except HistoryInsufficient: raise
         except SourceUnavailable as exc: primary = exc
     if futu_code.startswith("SH.920"):
         raise SourceUnavailable("北交所 920 代码未获腾讯/富途日线覆盖") from primary
     try:
-        return futu_series(futu_code)
+        return futu_series(futu_code, include_intraday)
     except HistoryInsufficient:
         raise
     except SourceUnavailable as fallback:
@@ -174,8 +174,12 @@ def classify(b, core, before, had_washout):
     if b20 is not None and b20 >= 85 and core["drawdown"] >= -3 and core["ret20"] >= 15: return "A股半导体顶部人性极端（警戒）", washout, repaired, rebound
     return "A股半导体未进入人性极端", washout, repaired, rebound
 
-def report(today, state, b, etfs, washout, repaired, rebound, history, errors, price_source):
-    lines = [f"# A股半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", "以全行业参与度为主、半导体/芯片/设备材料 ETF 为趋势与拥挤度交叉验证；不是交易指令。", "", "## 行业宽度位置", "", "宽度是富途 A 股“半导体”行业板块内，站上对应均线股票的比例。该行业板块比单只 ETF 更适合观察整体参与度；暂不将其伪装为 ETF 官方权重宽度。5/10 日用于观察短线修复速度，不单独作为人性极端信号。", "", "| 周期 | 读数（股票数） | 位置图 | 极端线 |", "|---|---:|---|---|"]
+def report(today, state, b, etfs, washout, repaired, rebound, history, errors, price_source, intraday=False, as_of=None):
+    title = f"# A股半导体{'盘中宽度' if intraday else '人性极端监测'}｜{today}"
+    if intraday:
+        title += f" {as_of}"
+    scope = "盘中价格快照，非收盘结论；收盘后日报会以最终收盘价另行沉淀。" if intraday else "以全行业参与度为主、半导体/芯片/设备材料 ETF 为趋势与拥挤度交叉验证；不是交易指令。"
+    lines = [title, "", "## 今日结论", "", f"**{state}{'（盘中，待收盘验证）' if intraday else ''}**", "", scope, "", "## 行业宽度位置", "", "宽度是富途 A 股“半导体”行业板块内，站上对应均线股票的比例。该行业板块比单只 ETF 更适合观察整体参与度；暂不将其伪装为 ETF 官方权重宽度。5/10 日用于观察短线修复速度，不单独作为人性极端信号。", "", "| 周期 | 读数（股票数） | 位置图 | 极端线 |", "|---|---:|---|---|"]
     for n in BREADTH_WINDOWS:
         x = b[n]
         if n in HUMAN_EXTREME_LINES:
@@ -184,7 +188,9 @@ def report(today, state, b, etfs, washout, repaired, rebound, history, errors, p
         else:
             position, extreme = "—", "观察值"
         lines.append(f"| {n} 日 | {fmt(x['value'],'%')}（{x['above']}/{x['count']}，覆盖 {x['coverage']:.1f}%） | {position} | {extreme} |")
-    lines += ["", "## 宽度变化趋势（最近一个月已完成交易日）", "", "逐日宽度会保存到 `data/breadth_history.jsonl`。本表按**当前**行业股票池以历史收盘价回算；随后每日读数将持续累积。", "", "| 观测交易日 | 5日 | 10日 | 20日 | 日变化 | 50日 | 200日 |", "|---|---:|---:|---:|---:|---:|---:|"]
+    history_label = "最近一个月（含当前盘中）" if intraday else "最近一个月已完成交易日"
+    history_note = "本表按当前行业股票池以历史收盘价回算，最后一行是当前盘中快照，不写入收盘宽度历史。" if intraday else "逐日宽度会保存到 `data/breadth_history.jsonl`。本表按**当前**行业股票池以历史收盘价回算；随后每日读数将持续累积。"
+    lines += ["", f"## 宽度变化趋势（{history_label}）", "", history_note, "", "| 观测交易日 | 5日 | 10日 | 20日 | 日变化 | 50日 | 200日 |", "|---|---:|---:|---:|---:|---:|---:|"]
     previous = None
     for row in history:
         x = row.get("breadth", {})
@@ -204,8 +210,9 @@ def report(today, state, b, etfs, washout, repaired, rebound, history, errors, p
             lines += ["", "- 数据源暂未覆盖或临时不可用：" + "；".join(coverage)]
     return "\n".join(lines)+"\n"
 
-def run():
-    today, errors = datetime.now(TZ).date(), []
+def run(intraday: bool = False):
+    now = datetime.now(TZ)
+    today, errors = now.date(), []
     try: rows = universe()
     except Exception as e: print(f"universe error: {e}"); return 1
     codes = {x["code"]: tencent_code(x["code"]) for x in rows}
@@ -214,21 +221,21 @@ def run():
     etfs, etf_prices, tencent_enabled = {}, {}, True
     for name,ticker in ETF.items():
         try:
-            etf_prices[name] = series(ticker) if tencent_enabled else futu_series(futu_code(ticker))
+            etf_prices[name] = series(ticker, intraday) if tencent_enabled else futu_series(futu_code(ticker), intraday)
             etfs[name] = etf_metric(etf_prices[name])
         except SourceUnavailable as e:
             # A WAF/HTTP failure is source-wide, so switch the batch once;
             # subsequent equities use the rate-limited OpenD route directly.
             tencent_enabled = False
             try:
-                etf_prices[name] = futu_series(futu_code(ticker))
+                etf_prices[name] = futu_series(futu_code(ticker), intraday)
                 etfs[name] = etf_metric(etf_prices[name])
             except (HistoryInsufficient, SourceUnavailable) as fallback:
                 errors.append(f"{name}: 腾讯不可用；{fallback}")
         except Exception as e: errors.append(f"{name}: 未预期错误 {type(e).__name__}")
     prices = {}
     with ThreadPoolExecutor(max_workers=4) as pool:
-        jobs={pool.submit(stock_series, ticker, code, tencent_enabled): code for code,ticker in codes.items()}
+        jobs={pool.submit(stock_series, ticker, code, tencent_enabled, intraday): code for code,ticker in codes.items()}
         for job in as_completed(jobs):
             code=jobs[job]
             try: prices[code]=job.result()
@@ -249,12 +256,16 @@ def run():
         had = any(row["breadth"]["20"]["value"] is not None and row["breadth"]["20"]["value"] <= 15 for row in width_history[:-1])
         state,washout,repaired,rebound=classify(b,etfs["半导体ETF"],before,had)
     price_source = "腾讯 qfq 日线" if tencent_enabled else "富途 OpenD 日线（腾讯公开接口 WAF 不可用时的限速备用）"
-    body=report(today,state,b,etfs,washout,repaired,rebound,width_history,errors,price_source)
+    as_of = now.strftime("%H:%M CST")
+    body=report(today,state,b,etfs,washout,repaired,rebound,width_history,errors,price_source,intraday,as_of)
     for folder in (ROOT/"reports",ROOT/"data"): folder.mkdir(exist_ok=True)
-    (ROOT/"reports"/f"a-share-semiconductor-human-extremes-{today}.md").write_text(body,encoding="utf-8")
+    report_name = f"a-share-semiconductor-human-extremes-{today}{'-' + now.strftime('%H%M') if intraday else ''}.md"
+    (ROOT/"reports"/report_name).write_text(body,encoding="utf-8")
     (ROOT/"data"/f"universe-{today}.json").write_text(json.dumps(rows,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    snap={"report_date":str(today),"observation_date":etfs.get("半导体ETF",{}).get("date"),"state":state,"price_source":price_source,"breadth":b,"recent_width_history":width_history,"etfs":etfs,"errors":errors}
-    (ROOT/"data"/"latest_snapshot.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    snap={"report_date":str(today),"observation_date":etfs.get("半导体ETF",{}).get("date"),"as_of":as_of,"mode":"intraday" if intraday else "daily","state":state,"price_source":price_source,"breadth":b,"recent_width_history":width_history,"etfs":etfs,"errors":errors}
+    (ROOT/"data"/("latest_intraday_snapshot.json" if intraday else "latest_snapshot.json")).write_text(json.dumps(snap,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    if intraday:
+        print(body); return 0
     ledger = ROOT / "data/breadth_history.jsonl"; existing = {}
     if ledger.exists():
         for line in ledger.read_text(encoding="utf-8").splitlines():
@@ -273,7 +284,7 @@ def run():
     print(body); return 0
 
 if __name__ == "__main__":
-    p=argparse.ArgumentParser(); p.add_argument("--self-test",action="store_true"); a=p.parse_args()
+    p=argparse.ArgumentParser(); p.add_argument("--self-test",action="store_true"); p.add_argument("--intraday",action="store_true",help="include the current partial A-share session without writing close-history"); a=p.parse_args()
     if a.self_test:
         b={20:{"value":10},50:{"value":30},200:{"value":90}}; core={"drawdown":-16,"close":90,"ma5":95,"ma200":100,"ret20":-5}; assert "洗出" in classify(b,core,None,False)[0]; print("self-test: ok")
-    else: raise SystemExit(run())
+    else: raise SystemExit(run(a.intraday))

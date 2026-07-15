@@ -63,9 +63,9 @@
     "SZ.301583: RuntimeError",
     "SH.688797: RuntimeError",
     "SH.920012: RuntimeError",
-    "SH.920179: RuntimeError",
     "SH.920139: RuntimeError",
-    "SH.920186: RuntimeError",
-    "SH.920189: RuntimeError"
+    "SH.920179: RuntimeError",
+    "SH.920189: RuntimeError",
+    "SH.920186: RuntimeError"
   ]
 }

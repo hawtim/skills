@@ -50,6 +50,10 @@ def series(code: str) -> dict:
             if math.isfinite(close): clean.append((day, close, vol))
         except (IndexError, ValueError, TypeError): pass
     if len(clean) < 30: raise RuntimeError("insufficient daily history")
+    # Tencent may expose a partial current-session candle before the A-share
+    # close.  A daily monitor must not turn that fragment into a fake close.
+    now = datetime.now(TZ)
+    if clean and clean[-1][0] == now.date() and (now.hour, now.minute) < (15, 10): clean.pop()
     return {"dates": [x[0] for x in clean], "closes": [x[1] for x in clean], "volumes": [x[2] for x in clean]}
 
 def ma(x, n): return statistics.fmean(x[-n:]) if len(x) >= n else None
@@ -79,6 +83,18 @@ def prior(today: date):
     values = [x for x in values if x is not None]
     return (values[-1] if values else None), any(x <= 15 for x in values)
 
+def trend(today: date, current: dict) -> list[dict]:
+    """Return an append-only, report-friendly recent breadth series."""
+    path = ROOT / "data/history.jsonl"; rows = []
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line)
+                if row.get("report_date") != str(today): rows.append(row)
+            except json.JSONDecodeError: pass
+    rows.append({"report_date": str(today), "breadth": {str(key): value for key, value in current.items()}})
+    return rows[-10:]
+
 def classify(b, core, before, had_washout):
     b20 = b[20]["value"]; stress = core["drawdown"] <= -15 or core["close"] < core["ma200"]
     washout = b20 is not None and b20 <= 15
@@ -89,10 +105,14 @@ def classify(b, core, before, had_washout):
     if b20 is not None and b20 >= 85 and core["drawdown"] >= -3 and core["ret20"] >= 15: return "A股半导体顶部人性极端（警戒）", washout, repaired, rebound
     return "A股半导体未进入人性极端", washout, repaired, rebound
 
-def report(today, state, b, etfs, washout, repaired, rebound, errors):
+def report(today, state, b, etfs, washout, repaired, rebound, history, errors):
     lines = [f"# A股半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", "以全行业参与度为主、半导体/芯片/设备材料 ETF 为趋势与拥挤度交叉验证；不是交易指令。", "", "## 行业宽度位置", "", "宽度是富途 A 股“半导体”行业板块内，站上对应均线股票的比例。该行业板块比单只 ETF 更适合观察整体参与度；暂不将其伪装为 ETF 官方权重宽度。", "", "| 周期 | 读数（股票数） | 位置图 | 极端线 |", "|---|---:|---|---|"]
     for n, low, high in ((20,15,85),(50,25,80),(200,15,85)):
         x=b[n]; lines.append(f"| {n} 日 | {fmt(x['value'],'%')}（{x['above']}/{x['count']}，覆盖 {x['coverage']:.1f}%） | `{gauge(x['value'],low,high)}` | {low}% / {high}% |")
+    lines += ["", "## 宽度变化趋势（最近 10 个观测日）", "", "逐日数据会保存在 `data/history.jsonl`；下表用于观察洗出、回升与背离过程，而不是只看单日位置。", "", "| 日期 | 20日宽度 | 50日宽度 | 200日宽度 |", "|---|---:|---:|---:|"]
+    for row in history:
+        x = row.get("breadth", {})
+        lines.append(f"| {row.get('report_date','—')} | {fmt(x.get('20',{}).get('value'),'%')} | {fmt(x.get('50',{}).get('value'),'%')} | {fmt(x.get('200',{}).get('value'),'%')} |")
     lines += ["", "## 两阶段底部判断", "", f"- 短线洗出：{'已触发' if washout else '未触发'}（20 日宽度 ≤15%）。", f"- 价格修复：{'已触发' if repaired else '未触发'}（半导体 ETF 收回 5 日线）。", f"- 宽度回升：{'已触发' if rebound else '未触发'}（20 日宽度较前日回升至少 5pct）。", "", "## ETF 交叉验证与拥挤代理", "", "| ETF | 收盘 | 20日变化 | 252日回撤 | 相对成交量 | 观测日 |", "|---|---:|---:|---:|---:|---|"]
     for name, x in etfs.items(): lines.append(f"| {name} | {fmt(x['close'])} | {fmt(x['ret20'],'%')} | {fmt(x['drawdown'],'%')} | {fmt(x['relvol'],'x')} | {x['date']} |")
     lines += ["", "## 怎么读", "", "- 全行业宽度与半导体ETF/芯片ETF同步洗出，才是较强的板块级短线恐慌证据。", "- 只有设备材料 ETF 显著弱或强，更多反映设备材料子行业，不直接代表设计、制造、封测全链条。", "- ETF 相对成交量是交易拥挤代理，不等于申赎或北向资金。", "", "## 数据来源与限制", "", "- 行业股票池：富途 OpenD A 股行业板块“半导体”（SH.LIST0002），每日保存快照。", "- 股票与 ETF 日线、成交量：腾讯 qfq 日线。无可核验的实时 ETF 权重时，仅计算等权行业宽度。", "- A股缺少与美股 AAII/NAAIM 对应的统一公开日频情绪调查；本版不虚构散户或机构情绪指数。"]
@@ -119,7 +139,7 @@ def run():
     if "半导体ETF" not in etfs or min(x["coverage"] for x in b.values()) < 75: state="数据不足 / 不作极端判断"; washout=repaired=rebound=False
     else:
         before, had=prior(today); state,washout,repaired,rebound=classify(b,etfs["半导体ETF"],before,had)
-    body=report(today,state,b,etfs,washout,repaired,rebound,errors)
+    body=report(today,state,b,etfs,washout,repaired,rebound,trend(today,b),errors)
     for folder in (ROOT/"reports",ROOT/"data"): folder.mkdir(exist_ok=True)
     (ROOT/"reports"/f"a-share-semiconductor-human-extremes-{today}.md").write_text(body,encoding="utf-8")
     (ROOT/"data"/f"universe-{today}.json").write_text(json.dumps(rows,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")

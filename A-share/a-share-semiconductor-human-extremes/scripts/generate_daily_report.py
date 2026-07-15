@@ -16,6 +16,9 @@ FUTU_PLATE_SCRIPT = Path("/Users/icemelon/.agents/skills/futuapi/scripts/quote/g
 FUTU_KLINE_SCRIPT = Path("/Users/icemelon/.agents/skills/futuapi/scripts/quote/get_kline.py")
 TENCENT = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={code},day,,,300,qfq"
 ETF = {"半导体ETF": "sh512480", "芯片ETF": "sz159995", "设备材料ETF": "sz159516", "设备ETF": "sh561980"}
+BREADTH_WINDOWS = (5, 10, 20, 50, 200)
+HUMAN_EXTREME_LINES = {20: (15, 85), 50: (25, 80), 200: (15, 85)}
+MONTH_SESSIONS = 22
 FUTU_MIN_INTERVAL, _futu_last_request, _futu_lock = 0.62, 0.0, threading.Lock()
 TENCENT_FAILURE_LIMIT, _tencent_failures, _tencent_lock = 8, 0, threading.Lock()
 
@@ -155,10 +158,10 @@ def prior(today: date):
     return (values[-1] if values else None), any(x <= 15 for x in values)
 
 def recent_widths(rows: list[dict], prices: dict[str, dict], core: dict) -> list[dict]:
-    """Backfill recent sessions from the same current industry universe."""
+    """Backfill one month of completed sessions from the current universe."""
     result = []
-    for observed in core["dates"][-4:]:
-        result.append({"observation_date": str(observed), "breadth": {str(n): breadth(rows, prices, n, observed) for n in (20, 50, 200)}})
+    for observed in core["dates"][-MONTH_SESSIONS:]:
+        result.append({"observation_date": str(observed), "breadth": {str(n): breadth(rows, prices, n, observed) for n in BREADTH_WINDOWS}})
     return result
 
 def classify(b, core, before, had_washout):
@@ -172,15 +175,21 @@ def classify(b, core, before, had_washout):
     return "A股半导体未进入人性极端", washout, repaired, rebound
 
 def report(today, state, b, etfs, washout, repaired, rebound, history, errors, price_source):
-    lines = [f"# A股半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", "以全行业参与度为主、半导体/芯片/设备材料 ETF 为趋势与拥挤度交叉验证；不是交易指令。", "", "## 行业宽度位置", "", "宽度是富途 A 股“半导体”行业板块内，站上对应均线股票的比例。该行业板块比单只 ETF 更适合观察整体参与度；暂不将其伪装为 ETF 官方权重宽度。", "", "| 周期 | 读数（股票数） | 位置图 | 极端线 |", "|---|---:|---|---|"]
-    for n, low, high in ((20,15,85),(50,25,80),(200,15,85)):
-        x=b[n]; lines.append(f"| {n} 日 | {fmt(x['value'],'%')}（{x['above']}/{x['count']}，覆盖 {x['coverage']:.1f}%） | `{gauge(x['value'],low,high)}` | {low}% / {high}% |")
-    lines += ["", "## 宽度变化趋势（最近四个已完成交易日）", "", "逐日宽度会保存到 `data/breadth_history.jsonl`。首次回填的前三日使用**当前**行业股票池按历史收盘价重新计算；后续每日股票池快照与当日读数会持续累积。", "", "| 观测交易日 | 20日宽度 | 日变化 | 50日宽度 | 200日宽度 |", "|---|---:|---:|---:|---:|"]
+    lines = [f"# A股半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", "以全行业参与度为主、半导体/芯片/设备材料 ETF 为趋势与拥挤度交叉验证；不是交易指令。", "", "## 行业宽度位置", "", "宽度是富途 A 股“半导体”行业板块内，站上对应均线股票的比例。该行业板块比单只 ETF 更适合观察整体参与度；暂不将其伪装为 ETF 官方权重宽度。5/10 日用于观察短线修复速度，不单独作为人性极端信号。", "", "| 周期 | 读数（股票数） | 位置图 | 极端线 |", "|---|---:|---|---|"]
+    for n in BREADTH_WINDOWS:
+        x = b[n]
+        if n in HUMAN_EXTREME_LINES:
+            low, high = HUMAN_EXTREME_LINES[n]
+            position, extreme = f"`{gauge(x['value'], low, high)}`", f"{low}% / {high}%"
+        else:
+            position, extreme = "—", "观察值"
+        lines.append(f"| {n} 日 | {fmt(x['value'],'%')}（{x['above']}/{x['count']}，覆盖 {x['coverage']:.1f}%） | {position} | {extreme} |")
+    lines += ["", "## 宽度变化趋势（最近一个月已完成交易日）", "", "逐日宽度会保存到 `data/breadth_history.jsonl`。本表按**当前**行业股票池以历史收盘价回算；随后每日读数将持续累积。", "", "| 观测交易日 | 5日 | 10日 | 20日 | 日变化 | 50日 | 200日 |", "|---|---:|---:|---:|---:|---:|---:|"]
     previous = None
     for row in history:
         x = row.get("breadth", {})
         current = x.get("20", {}).get("value"); change = None if previous is None or current is None else current - previous
-        lines.append(f"| {row.get('observation_date','—')} | {fmt(current,'%')} | {fmt(change,'pct')} | {fmt(x.get('50',{}).get('value'),'%')} | {fmt(x.get('200',{}).get('value'),'%')} |")
+        lines.append(f"| {row.get('observation_date','—')} | {fmt(x.get('5',{}).get('value'),'%')} | {fmt(x.get('10',{}).get('value'),'%')} | {fmt(current,'%')} | {fmt(change,'pct')} | {fmt(x.get('50',{}).get('value'),'%')} | {fmt(x.get('200',{}).get('value'),'%')} |")
         previous = current
     lines += ["", "## 两阶段底部判断", "", f"- 短线洗出：{'已触发' if washout else '未触发'}（20 日宽度 ≤15%）。", f"- 价格修复：{'已触发' if repaired else '未触发'}（半导体 ETF 收回 5 日线）。", f"- 宽度回升：{'已触发' if rebound else '未触发'}（20 日宽度较前日回升至少 5pct）。", "", "## ETF 交叉验证与拥挤代理", "", "| ETF | 收盘 | 20日变化 | 252日回撤 | 相对成交量 | 观测日 |", "|---|---:|---:|---:|---:|---|"]
     for name, x in etfs.items(): lines.append(f"| {name} | {fmt(x['close'])} | {fmt(x['ret20'],'%')} | {fmt(x['drawdown'],'%')} | {fmt(x['relvol'],'x')} | {x['date']} |")
@@ -226,7 +235,7 @@ def run():
             except HistoryInsufficient as e: errors.append(f"{code}: {e}")
             except SourceUnavailable as e: errors.append(f"{code}: {e}")
             except Exception as e: errors.append(f"{code}: 未预期错误 {type(e).__name__}")
-    b={n: breadth(rows, prices, n) for n in (20,50,200)}
+    b={n: breadth(rows, prices, n) for n in BREADTH_WINDOWS}
     # Source-wide failures must not overwrite a valid same-day report or
     # contaminate the stored breadth trend with a tiny, biased subset.
     source_outage = any("请求失败" in e or "健康保护" in e for e in errors)
@@ -254,7 +263,9 @@ def run():
             except (json.JSONDecodeError, KeyError): pass
     for point in width_history:
         observed = point["observation_date"]
-        existing.setdefault(observed, {"observation_date": observed, "breadth": point["breadth"], "universe_source": "current-universe retrospective backfill" if observed != etfs["半导体ETF"]["date"] else "daily current-universe snapshot"})
+        # Refresh the one-month window so the ledger gains the new 5/10-day
+        # fields as well as the same-universe historical comparison.
+        existing[observed] = {"observation_date": observed, "breadth": point["breadth"], "universe_source": "current-universe retrospective backfill" if observed != etfs["半导体ETF"]["date"] else "daily current-universe snapshot"}
     ledger.write_text("".join(json.dumps(existing[key],ensure_ascii=False)+"\n" for key in sorted(existing)),encoding="utf-8")
     hist=ROOT/"data/history.jsonl"; prior_rows=[]
     if hist.exists(): prior_rows=[json.loads(x) for x in hist.read_text(encoding="utf-8").splitlines() if x.strip() and json.loads(x).get("report_date")!=str(today)]

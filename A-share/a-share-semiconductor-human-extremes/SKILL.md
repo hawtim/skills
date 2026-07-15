@@ -20,7 +20,9 @@ Always read `references/framework.md` before interpreting the output.
 3. Upgrade only when the broad semiconductor ETF is back above its 5-day average and 20-day breadth is at least 5 percentage points above the prior session after a recent washout.
 4. Use 512480 semiconductor ETF, 159995 chip ETF, and 159516/561980 equipment ETFs as cross-checks and turnover-based crowding proxies. Keep equipment/materials as a subindustry, not a substitute for the broad semiconductor verdict.
 5. If valid-price coverage is below 75%, emit `数据不足 / 不作极端判断`.
-6. Never turn this monitor into an automatic order, valuation, price target, or unverified retail/institutional-sentiment claim.
+6. Use Tencent qfq daily bars as the primary price source. If its WAF/HTTP path is unavailable, switch the batch once to Futu OpenD daily bars, throttled below its 60 historical-K requests per 30 seconds limit.
+7. Describe exclusions explicitly: fewer than 20 completed sessions is a new-listing history limit; an unavailable symbol is a source-coverage gap. Do not expose either as an opaque `RuntimeError`.
+8. Never turn this monitor into an automatic order, valuation, price target, or unverified retail/institutional-sentiment claim.
 
 ## Validation
 

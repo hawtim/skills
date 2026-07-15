@@ -1,0 +1,4 @@
+interface:
+  display_name: "A股板块人性极端"
+  short_description: "动态扫描A股板块宽度、极端状态与重合风险"
+  default_prompt: "Use $a-share-sector-extremes to generate the daily A-share sector human-extremes ranking."

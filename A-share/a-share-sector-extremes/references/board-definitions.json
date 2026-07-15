@@ -1,0 +1,7 @@
+{
+  "boards": [
+    {"id":"semiconductor","name":"半导体","kind":"富途行业板块","plates":["SH.LIST0002"]},
+    {"id":"star50","name":"科创50","kind":"上证科创50指数成分股","plates":["SH.000688"]},
+    {"id":"communication","name":"通信","kind":"富途行业组合：通信设备、通信服务","plates":["SH.LIST0061","SH.LIST0088"]}
+  ]
+}

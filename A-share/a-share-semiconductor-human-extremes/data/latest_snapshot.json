@@ -1,5 +1,6 @@
 {
   "report_date": "2026-07-15",
+  "observation_date": "2026-07-14",
   "state": "A股半导体未进入人性极端",
   "breadth": {
     "20": {
@@ -21,6 +22,100 @@
       "coverage": 90.65934065934066
     }
   },
+  "recent_width_history": [
+    {
+      "observation_date": "2026-07-09",
+      "breadth": {
+        "20": {
+          "value": 81.71428571428571,
+          "above": 143,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "50": {
+          "value": 86.85714285714286,
+          "above": 152,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "200": {
+          "value": 89.0909090909091,
+          "above": 147,
+          "count": 165,
+          "coverage": 90.65934065934066
+        }
+      }
+    },
+    {
+      "observation_date": "2026-07-10",
+      "breadth": {
+        "20": {
+          "value": 56.57142857142857,
+          "above": 99,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "50": {
+          "value": 77.14285714285714,
+          "above": 135,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "200": {
+          "value": 87.87878787878788,
+          "above": 145,
+          "count": 165,
+          "coverage": 90.65934065934066
+        }
+      }
+    },
+    {
+      "observation_date": "2026-07-13",
+      "breadth": {
+        "20": {
+          "value": 28.571428571428573,
+          "above": 50,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "50": {
+          "value": 59.42857142857143,
+          "above": 104,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "200": {
+          "value": 83.63636363636364,
+          "above": 138,
+          "count": 165,
+          "coverage": 90.65934065934066
+        }
+      }
+    },
+    {
+      "observation_date": "2026-07-14",
+      "breadth": {
+        "20": {
+          "value": 25.142857142857142,
+          "above": 44,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "50": {
+          "value": 59.42857142857143,
+          "above": 104,
+          "count": 175,
+          "coverage": 96.15384615384616
+        },
+        "200": {
+          "value": 80.0,
+          "above": 132,
+          "count": 165,
+          "coverage": 90.65934065934066
+        }
+      }
+    }
+  ],
   "etfs": {
     "半导体ETF": {
       "close": 1.308,
@@ -62,10 +157,10 @@
   "errors": [
     "SZ.301583: RuntimeError",
     "SH.688797: RuntimeError",
-    "SH.920012: RuntimeError",
     "SH.920139: RuntimeError",
+    "SH.920012: RuntimeError",
     "SH.920179: RuntimeError",
-    "SH.920189: RuntimeError",
-    "SH.920186: RuntimeError"
+    "SH.920186: RuntimeError",
+    "SH.920189: RuntimeError"
   ]
 }

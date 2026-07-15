@@ -64,9 +64,15 @@ def gauge(v, low, high, slots=24):
     return "".join(s)
 def fmt(v, suffix=""): return "UNAVAILABLE" if v is None else f"{v:.2f}{suffix}"
 
-def breadth(rows: list[dict], prices: dict[str, dict], days: int) -> dict:
-    valid = [prices[x["code"]] for x in rows if x["code"] in prices and ma(prices[x["code"]]["closes"], days) is not None]
-    above = sum(s["closes"][-1] > ma(s["closes"], days) for s in valid)
+def breadth(rows: list[dict], prices: dict[str, dict], days: int, asof: date | None = None) -> dict:
+    valid = []
+    for item in rows:
+        source = prices.get(item["code"])
+        if not source: continue
+        end = len(source["dates"]) if asof is None else next((i for i, day in enumerate(source["dates"]) if day > asof), len(source["dates"]))
+        closes = source["closes"][:end]
+        if ma(closes, days) is not None: valid.append(closes)
+    above = sum(s[-1] > ma(s, days) for s in valid)
     return {"value": 100 * above / len(valid) if valid else None, "above": above, "count": len(valid), "coverage": 100 * len(valid) / len(rows)}
 
 def etf_metric(s: dict) -> dict:
@@ -83,17 +89,12 @@ def prior(today: date):
     values = [x for x in values if x is not None]
     return (values[-1] if values else None), any(x <= 15 for x in values)
 
-def trend(today: date, current: dict) -> list[dict]:
-    """Return an append-only, report-friendly recent breadth series."""
-    path = ROOT / "data/history.jsonl"; rows = []
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            try:
-                row = json.loads(line)
-                if row.get("report_date") != str(today): rows.append(row)
-            except json.JSONDecodeError: pass
-    rows.append({"report_date": str(today), "breadth": {str(key): value for key, value in current.items()}})
-    return rows[-10:]
+def recent_widths(rows: list[dict], prices: dict[str, dict], core: dict) -> list[dict]:
+    """Backfill recent sessions from the same current industry universe."""
+    result = []
+    for observed in core["dates"][-4:]:
+        result.append({"observation_date": str(observed), "breadth": {str(n): breadth(rows, prices, n, observed) for n in (20, 50, 200)}})
+    return result
 
 def classify(b, core, before, had_washout):
     b20 = b[20]["value"]; stress = core["drawdown"] <= -15 or core["close"] < core["ma200"]
@@ -109,10 +110,13 @@ def report(today, state, b, etfs, washout, repaired, rebound, history, errors):
     lines = [f"# A股半导体人性极端监测｜{today}", "", "## 今日结论", "", f"**{state}**", "", "以全行业参与度为主、半导体/芯片/设备材料 ETF 为趋势与拥挤度交叉验证；不是交易指令。", "", "## 行业宽度位置", "", "宽度是富途 A 股“半导体”行业板块内，站上对应均线股票的比例。该行业板块比单只 ETF 更适合观察整体参与度；暂不将其伪装为 ETF 官方权重宽度。", "", "| 周期 | 读数（股票数） | 位置图 | 极端线 |", "|---|---:|---|---|"]
     for n, low, high in ((20,15,85),(50,25,80),(200,15,85)):
         x=b[n]; lines.append(f"| {n} 日 | {fmt(x['value'],'%')}（{x['above']}/{x['count']}，覆盖 {x['coverage']:.1f}%） | `{gauge(x['value'],low,high)}` | {low}% / {high}% |")
-    lines += ["", "## 宽度变化趋势（最近 10 个观测日）", "", "逐日数据会保存在 `data/history.jsonl`；下表用于观察洗出、回升与背离过程，而不是只看单日位置。", "", "| 日期 | 20日宽度 | 50日宽度 | 200日宽度 |", "|---|---:|---:|---:|"]
+    lines += ["", "## 宽度变化趋势（最近四个已完成交易日）", "", "逐日宽度会保存到 `data/breadth_history.jsonl`。首次回填的前三日使用**当前**行业股票池按历史收盘价重新计算；后续每日股票池快照与当日读数会持续累积。", "", "| 观测交易日 | 20日宽度 | 日变化 | 50日宽度 | 200日宽度 |", "|---|---:|---:|---:|---:|"]
+    previous = None
     for row in history:
         x = row.get("breadth", {})
-        lines.append(f"| {row.get('report_date','—')} | {fmt(x.get('20',{}).get('value'),'%')} | {fmt(x.get('50',{}).get('value'),'%')} | {fmt(x.get('200',{}).get('value'),'%')} |")
+        current = x.get("20", {}).get("value"); change = None if previous is None or current is None else current - previous
+        lines.append(f"| {row.get('observation_date','—')} | {fmt(current,'%')} | {fmt(change,'pct')} | {fmt(x.get('50',{}).get('value'),'%')} | {fmt(x.get('200',{}).get('value'),'%')} |")
+        previous = current
     lines += ["", "## 两阶段底部判断", "", f"- 短线洗出：{'已触发' if washout else '未触发'}（20 日宽度 ≤15%）。", f"- 价格修复：{'已触发' if repaired else '未触发'}（半导体 ETF 收回 5 日线）。", f"- 宽度回升：{'已触发' if rebound else '未触发'}（20 日宽度较前日回升至少 5pct）。", "", "## ETF 交叉验证与拥挤代理", "", "| ETF | 收盘 | 20日变化 | 252日回撤 | 相对成交量 | 观测日 |", "|---|---:|---:|---:|---:|---|"]
     for name, x in etfs.items(): lines.append(f"| {name} | {fmt(x['close'])} | {fmt(x['ret20'],'%')} | {fmt(x['drawdown'],'%')} | {fmt(x['relvol'],'x')} | {x['date']} |")
     lines += ["", "## 怎么读", "", "- 全行业宽度与半导体ETF/芯片ETF同步洗出，才是较强的板块级短线恐慌证据。", "- 只有设备材料 ETF 显著弱或强，更多反映设备材料子行业，不直接代表设计、制造、封测全链条。", "- ETF 相对成交量是交易拥挤代理，不等于申赎或北向资金。", "", "## 数据来源与限制", "", "- 行业股票池：富途 OpenD A 股行业板块“半导体”（SH.LIST0002），每日保存快照。", "- 股票与 ETF 日线、成交量：腾讯 qfq 日线。无可核验的实时 ETF 权重时，仅计算等权行业宽度。", "- A股缺少与美股 AAII/NAAIM 对应的统一公开日频情绪调查；本版不虚构散户或机构情绪指数。"]
@@ -136,15 +140,28 @@ def run():
         try: etfs[name]=etf_metric(series(ticker))
         except Exception as e: errors.append(f"{name}: {type(e).__name__}")
     b={n: breadth(rows, prices, n) for n in (20,50,200)}
+    width_history = recent_widths(rows, prices, series(ETF["半导体ETF"]))
     if "半导体ETF" not in etfs or min(x["coverage"] for x in b.values()) < 75: state="数据不足 / 不作极端判断"; washout=repaired=rebound=False
     else:
-        before, had=prior(today); state,washout,repaired,rebound=classify(b,etfs["半导体ETF"],before,had)
-    body=report(today,state,b,etfs,washout,repaired,rebound,trend(today,b),errors)
+        before = width_history[-2]["breadth"]["20"]["value"] if len(width_history) > 1 else None
+        had = any(row["breadth"]["20"]["value"] is not None and row["breadth"]["20"]["value"] <= 15 for row in width_history[:-1])
+        state,washout,repaired,rebound=classify(b,etfs["半导体ETF"],before,had)
+    body=report(today,state,b,etfs,washout,repaired,rebound,width_history,errors)
     for folder in (ROOT/"reports",ROOT/"data"): folder.mkdir(exist_ok=True)
     (ROOT/"reports"/f"a-share-semiconductor-human-extremes-{today}.md").write_text(body,encoding="utf-8")
     (ROOT/"data"/f"universe-{today}.json").write_text(json.dumps(rows,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    snap={"report_date":str(today),"state":state,"breadth":b,"etfs":etfs,"errors":errors}
+    snap={"report_date":str(today),"observation_date":etfs.get("半导体ETF",{}).get("date"),"state":state,"breadth":b,"recent_width_history":width_history,"etfs":etfs,"errors":errors}
     (ROOT/"data"/"latest_snapshot.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    ledger = ROOT / "data/breadth_history.jsonl"; existing = {}
+    if ledger.exists():
+        for line in ledger.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line); existing[row["observation_date"]] = row
+            except (json.JSONDecodeError, KeyError): pass
+    for point in width_history:
+        observed = point["observation_date"]
+        existing.setdefault(observed, {"observation_date": observed, "breadth": point["breadth"], "universe_source": "current-universe retrospective backfill" if observed != etfs["半导体ETF"]["date"] else "daily current-universe snapshot"})
+    ledger.write_text("".join(json.dumps(existing[key],ensure_ascii=False)+"\n" for key in sorted(existing)),encoding="utf-8")
     hist=ROOT/"data/history.jsonl"; prior_rows=[]
     if hist.exists(): prior_rows=[json.loads(x) for x in hist.read_text(encoding="utf-8").splitlines() if x.strip() and json.loads(x).get("report_date")!=str(today)]
     hist.write_text("".join(json.dumps(x,ensure_ascii=False)+"\n" for x in prior_rows+[snap]),encoding="utf-8")

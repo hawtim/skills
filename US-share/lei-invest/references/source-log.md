@@ -4,6 +4,7 @@
 
 | Report Date | Gmail ID | Subject | Sender | Email Timestamp | Status | Key Source IDs | Cumulative Impact |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-16 | `19f6963822a66d30` | TheMarketMemo Daily Report - 2026-07-16 | hawtimzhang@gmail.com | 2026-07-16T05:25:57 | processed | 2077495773206544691; 2077523815702417780; 2077428711880888416; 2077423610265059548; 2077425627465126306; 2077193347966574696; 2077193006491570351; 2077241793406767249; 2077220451118424217 | Added broad-commodity/PDBC and commodity-versus-precious-metals evidence; recorded optical-communications and space-theme drawdown facts without turning them into a trade call; reinforced catastrophic-loss and strategy-not-bare-holding principles while preserving the unnamed-two-ETFs ambiguity. |
 | 2026-07-15 | `19f643db071e4f16` | TheMarketMemo Daily Report - 2026-07-15 | hawtimzhang@gmail.com | 2026-07-15T05:26:32 | processed | 2077079741765673276; 2077094990279541022; 2077106115012338072; 2077148505228115998; 2077148506721313020; 2077193006491570351; 2077193347966574696; 2077220451118424217; 2077241793406767249; 1938352308531994820 | Added direct daily-report evidence for avoiding single-stock catastrophic loss, a selection-and-removal ETF core with DCA/BTD, and the base/optional-upside/optional-trading three-layer path; clarified TQQQ needs strategy and preserved ambiguous ETF-mechanism reply context for revision watch. |
 | 2026-07-12 | `19f54927a4c2277c` | TheMarketMemo Daily Report - 2026-07-12 | ZhangHawtim hawtim@icloud.com | 2026-07-12 12:24:56 Asia/Shanghai | processed | 2075450308512423967 | No new LEI activity; reinforced QQQ resilience vs Mag7 weakness and breadth-risk framework. |
 | 2026-07-12 | `19f54aa0dc2f8d74` | TheMarketMemo Daily Report - 2026-07-12 (direct send test) | hawtimzhang@gmail.com | 2026-07-12 12:50:58 Asia/Shanghai | duplicate-test | 2075450308512423967 | Body matched canonical same-day report; not used as primary source. |
@@ -21,6 +22,7 @@
 - `references/daily-reports/themarketmemo-daily-report-2026-07-11.md`
 - `references/daily-reports/themarketmemo-daily-report-2026-07-12.md`
 - `references/daily-reports/themarketmemo-daily-report-2026-07-15.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-16.md`
 
 ## Source Handling Notes
 

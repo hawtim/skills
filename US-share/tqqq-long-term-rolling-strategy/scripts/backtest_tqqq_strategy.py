@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Backtest TheMarketMemo-style TQQQ long-term rolling strategy.
+"""Backtest TheMarketMemo-style TQQQ barbell strategy.
 
 The script is intentionally deterministic and auditable. It models the stock
 and ETF legs from daily closes plus cash dividends, while treating futures and
@@ -24,31 +24,31 @@ from time import sleep
 INSTRUMENTS = {
     "TQQQ": {"code": "US.TQQQ", "name": "ProShares UltraPro QQQ"},
     "JEPQ": {"code": "US.JEPQ", "name": "JPMorgan Nasdaq Equity Premium Income ETF"},
+    "JAAA": {"code": "US.JAAA", "name": "Janus Henderson AAA CLO ETF"},
     "SGOV": {"code": "US.SGOV", "name": "iShares 0-3 Month Treasury Bond ETF"},
     "QQQ": {"code": "US.QQQ", "name": "Invesco QQQ Trust"},
 }
 
-TARGET_WEIGHTS = {"TQQQ": 0.50, "JEPQ": 0.25, "SGOV": 0.25}
-DIVIDEND_ASSETS = {"JEPQ", "SGOV"}
+TARGET_WEIGHTS = {"TQQQ": 0.50, "JEPQ": 0.25, "JAAA": 0.25}
+DIVIDEND_ASSETS = {"JEPQ", "JAAA"}
+DEFENSIVE_ASSET = "JAAA"
 BTD_LEVELS = [
-    {"name": "btd_tqqq_drawdown_30pct", "drawdown": 0.30, "reserve_fraction": 1 / 4, "hedge_close_fraction": 0.20},
-    {"name": "btd_tqqq_drawdown_50pct", "drawdown": 0.50, "reserve_fraction": 1 / 3, "hedge_close_fraction": 1 / 3},
-    {"name": "btd_tqqq_drawdown_70pct", "drawdown": 0.70, "reserve_fraction": 1 / 2, "hedge_close_fraction": 1 / 2},
-    {"name": "btd_tqqq_drawdown_85pct", "drawdown": 0.85, "reserve_fraction": 1.00, "hedge_close_fraction": 1.00},
+    {"name": "btd_qqq_drawdown_12pct", "drawdown": 0.12, "reserve_fraction": 1 / 3, "hedge_close_fraction": 0.0},
+    {"name": "btd_qqq_drawdown_20pct", "drawdown": 0.20, "reserve_fraction": 1 / 2, "hedge_close_fraction": 0.0},
+    {"name": "btd_qqq_drawdown_30pct", "drawdown": 0.30, "reserve_fraction": 1.00, "hedge_close_fraction": 0.0},
 ]
 
 
 @dataclass
 class Portfolio:
     cash: float
-    shares: dict[str, float] = field(default_factory=lambda: {"TQQQ": 0.0, "JEPQ": 0.0, "SGOV": 0.0})
+    shares: dict[str, float] = field(default_factory=lambda: {"TQQQ": 0.0, "JEPQ": 0.0, DEFENSIVE_ASSET: 0.0})
     dividend_cash: float = 0.0
     hedge_notional: float = 0.0
     hedge_entry_qqq: float = 0.0
-    tqqq_high: float = 0.0
+    qqq_high: float = 0.0
     high_watermark: float = 0.0
     btd_index: int = 0
-    dca_done_month: str = ""
 
 
 def parse_yyyymmdd(value: str) -> str:
@@ -200,7 +200,7 @@ def fetch_futu_dividends(codes: dict[str, str]) -> list[dict]:
 
 
 def load_prices(source: str, begin: str, end: str, rehab: str) -> tuple[dict[str, dict[str, dict]], list[dict]]:
-    yahoo_symbols = {"TQQQ": "TQQQ", "JEPQ": "JEPQ", "SGOV": "SGOV", "QQQ": "QQQ"}
+    yahoo_symbols = {"TQQQ": "TQQQ", "JEPQ": "JEPQ", "JAAA": "JAAA", "SGOV": "SGOV", "QQQ": "QQQ"}
     all_prices: dict[str, dict[str, dict]] = {}
     price_rows: list[dict] = []
     for symbol, meta in INSTRUMENTS.items():
@@ -284,7 +284,7 @@ def buy_tqqq_from_reserve(portfolio: Portfolio, amount: float, prices: dict[str,
         return 0.0
     if portfolio.cash < amount:
         sell_needed = amount - portfolio.cash
-        sell(portfolio, "SGOV", sell_needed, prices)
+        sell(portfolio, DEFENSIVE_ASSET, sell_needed, prices)
     return buy(portfolio, "TQQQ", amount, prices)
 
 
@@ -346,7 +346,7 @@ def log_row(
     }
 
 
-def nav_row(strategy: str, day: str, portfolio: Portfolio, prices: dict[str, float], qqq_ma200: float | None, tqqq_drawdown: float) -> dict:
+def nav_row(strategy: str, day: str, portfolio: Portfolio, prices: dict[str, float], qqq_ma200: float | None, qqq_drawdown: float) -> dict:
     tv = total_value(portfolio, prices)
     row = {
         "strategy": strategy,
@@ -357,7 +357,7 @@ def nav_row(strategy: str, day: str, portfolio: Portfolio, prices: dict[str, flo
         "market_value": round(market_value(portfolio, prices), 2),
         "hedge_notional": round(portfolio.hedge_notional, 2),
         "hedge_unrealized": round(hedge_unrealized(portfolio, prices["QQQ"]), 2),
-        "tqqq_drawdown_from_high": round(tqqq_drawdown, 6),
+        "qqq_drawdown_from_high": round(qqq_drawdown, 6),
         "qqq_close": round(prices["QQQ"], 4),
         "qqq_ma200": round(qqq_ma200, 4) if qqq_ma200 else "",
     }
@@ -396,7 +396,6 @@ def run_strategy(
     nav_rows: list[dict] = []
     pending_dividends: dict[str, list[dict]] = {}
     dividend_events = prepare_dividend_events(dividends, dates)
-    month_ends = month_end_dates(dates[start_index:])
     qqq_closes = [all_prices["QQQ"][day]["close"] for day in dates]
 
     first_day = dates[start_index]
@@ -406,25 +405,20 @@ def run_strategy(
         logs.append(log_row(strategy, first_day, "buy", "initial_100pct_tqqq", "TQQQ", first_prices["TQQQ"], spent, portfolio, first_prices, "100% TQQQ参照"))
     else:
         initial_build(portfolio, first_prices, principal, logs, first_day, strategy)
-    portfolio.tqqq_high = first_prices["TQQQ"]
+    portfolio.qqq_high = first_prices["QQQ"]
 
     for i, day in enumerate(dates):
         if i < start_index:
             continue
         prices = prices_on(all_prices, day)
-        month = day[:7]
         qqq_ma200 = moving_average(qqq_closes, i, 200)
-        qqq_above_ma = qqq_ma200 is not None and prices["QQQ"] > qqq_ma200
         qqq_below_hedge_line = qqq_ma200 is not None and prices["QQQ"] < qqq_ma200 * 0.97
         qqq_above_unhedge_line = qqq_ma200 is not None and prices["QQQ"] > qqq_ma200 * 1.03
 
-        if month != portfolio.dca_done_month and portfolio.dca_done_month[:7] != month:
-            portfolio.dca_done_month = ""
-
-        if prices["TQQQ"] > portfolio.tqqq_high:
-            portfolio.tqqq_high = prices["TQQQ"]
+        if prices["QQQ"] > portfolio.qqq_high:
+            portfolio.qqq_high = prices["QQQ"]
             portfolio.btd_index = 0
-        tqqq_drawdown = 0.0 if portfolio.tqqq_high <= 0 else prices["TQQQ"] / portfolio.tqqq_high - 1
+        qqq_drawdown = 0.0 if portfolio.qqq_high <= 0 else prices["QQQ"] / portfolio.qqq_high - 1
 
         for item in dividend_events["ex"].get(day, []):
             amount = portfolio.shares.get(item["symbol"], 0.0) * item["dividend_per_share"]
@@ -438,35 +432,18 @@ def run_strategy(
             portfolio.cash += amount
             portfolio.dividend_cash += amount
             logs.append(log_row(strategy, day, "dividend_cash_in", "dividend_payable_date", item["symbol"], prices[item["symbol"]], amount, portfolio, prices, "分红入现金"))
-            if strategy == "tqqq_rolling_strategy" and not qqq_above_ma:
-                spent = buy(portfolio, "SGOV", portfolio.dividend_cash, prices)
-                logs.append(log_row(strategy, day, "buy", "qqq_below_200ma_dividend_to_sgov", "SGOV", prices["SGOV"], spent, portfolio, prices, "QQQ低于200MA，分红买入SGOV"))
 
-        if strategy == "tqqq_rolling_strategy":
-            previous_close = all_prices["TQQQ"][dates[i - 1]]["close"] if i > 0 else prices["TQQQ"]
-            daily_return = prices["TQQQ"] / previous_close - 1 if previous_close else 0.0
-            dca_trigger = None
-            if portfolio.dividend_cash > 0 and portfolio.dca_done_month != month:
-                if daily_return <= -0.05:
-                    dca_trigger = "monthly_first_tqqq_down_5pct_dca"
-                elif day in month_ends:
-                    dca_trigger = "month_end_dividend_dca"
-            if dca_trigger:
-                target = "TQQQ" if qqq_above_ma else "SGOV"
-                spent = buy(portfolio, target, portfolio.dividend_cash, prices)
-                portfolio.dca_done_month = month
-                logs.append(log_row(strategy, day, "buy", dca_trigger if target == "TQQQ" else "qqq_below_200ma_dividend_to_sgov", target, prices[target], spent, portfolio, prices, "分红定投"))
-
+        if strategy == "tqqq_barbell_strategy":
             if include_hedge and qqq_below_hedge_line and portfolio.hedge_notional <= 0:
                 notional = open_hedge(portfolio, prices)
                 logs.append(log_row(strategy, day, "open_hedge", "qqq_below_200ma_minus_3pct", "QQQ", prices["QQQ"], notional, portfolio, prices, "QQQ空头代理NQ/MNQ对冲"))
 
-            while portfolio.btd_index < len(BTD_LEVELS) and -tqqq_drawdown >= BTD_LEVELS[portfolio.btd_index]["drawdown"]:
+            while portfolio.btd_index < len(BTD_LEVELS) and -qqq_drawdown >= BTD_LEVELS[portfolio.btd_index]["drawdown"]:
                 level = BTD_LEVELS[portfolio.btd_index]
                 if include_hedge and portfolio.hedge_notional > 0:
                     realized = close_hedge(portfolio, prices, level["hedge_close_fraction"])
                     logs.append(log_row(strategy, day, "close_hedge", f"{level['name']}_partial_hedge_close", "QQQ", prices["QQQ"], realized, portfolio, prices, "BTD触发后按档位平掉部分对冲"))
-                reserve = portfolio.cash + asset_value(portfolio, prices, "SGOV")
+                reserve = portfolio.cash + asset_value(portfolio, prices, DEFENSIVE_ASSET)
                 buy_amount = reserve * level["reserve_fraction"]
                 spent = buy_tqqq_from_reserve(portfolio, buy_amount, prices)
                 logs.append(log_row(strategy, day, "buy", level["name"], "TQQQ", prices["TQQQ"], spent, portfolio, prices, "动用现金储备买入TQQQ"))
@@ -478,15 +455,15 @@ def run_strategy(
 
             tv = total_value(portfolio, prices)
             tqqq_weight = asset_value(portfolio, prices, "TQQQ") / tv if tv > 0 else 0.0
-            if tqqq_weight >= 0.60:
-                target_value = tv * 0.55
+            if tqqq_weight >= 0.65:
+                target_value = tv * TARGET_WEIGHTS["TQQQ"]
                 sell_amount = asset_value(portfolio, prices, "TQQQ") - target_value
                 sold = sell(portfolio, "TQQQ", sell_amount, prices)
-                bought = buy(portfolio, "SGOV", sold, prices)
-                logs.append(log_row(strategy, day, "rebalance", "tqqq_weight_60pct_sell_to_55pct", "TQQQ", prices["TQQQ"], sold, portfolio, prices, f"卖出TQQQ并买入SGOV {bought:.2f}"))
+                bought = buy(portfolio, DEFENSIVE_ASSET, sold, prices)
+                logs.append(log_row(strategy, day, "rebalance", "tqqq_weight_65pct_rebalance_to_50_25_25", "TQQQ", prices["TQQQ"], sold, portfolio, prices, f"卖出TQQQ并买入{DEFENSIVE_ASSET} {bought:.2f}"))
 
         portfolio.high_watermark = max(portfolio.high_watermark, total_value(portfolio, prices))
-        nav_rows.append(nav_row(strategy, day, portfolio, prices, qqq_ma200, tqqq_drawdown))
+        nav_rows.append(nav_row(strategy, day, portfolio, prices, qqq_ma200, qqq_drawdown))
 
     ending = nav_rows[-1]
     max_drawdown = 0.0
@@ -515,7 +492,7 @@ def run_strategy(
 
 def render_report(path: Path, summaries: list[dict], args: argparse.Namespace, source_note: str) -> None:
     by_strategy = {row["strategy"]: row for row in summaries}
-    strategy = by_strategy["tqqq_rolling_strategy"]
+    strategy = by_strategy["tqqq_barbell_strategy"]
     static = by_strategy["static_50_25_25"]
     tqqq = by_strategy["tqqq_buy_hold"]
 
@@ -523,7 +500,7 @@ def render_report(path: Path, summaries: list[dict], args: argparse.Namespace, s
         return f"{value * 100:.2f}%"
 
     lines = [
-        "# TQQQ 长期滚动策略回测",
+        "# TQQQ 槓鈴策略回测",
         "",
         f"回测区间：{strategy['start_date']} 至 {strategy['end_date']}；本金：{args.principal:,.2f} USD。",
         f"数据来源：{source_note}。",
@@ -537,19 +514,19 @@ def render_report(path: Path, summaries: list[dict], args: argparse.Namespace, s
         "",
         "## 规则量化口径",
         "",
-        "- 初始资产按 TQQQ/JEPQ/SGOV = 50%/25%/25% 建仓。",
-        "- JEPQ 与 SGOV 分红按 Futu 派息日进入现金；QQQ 高于 200MA 时用于 TQQQ DCA，低于 200MA 时买入 SGOV。",
-        "- TQQQ 从策略高点回撤 -30%/-50%/-70%/-85% 时，按规则动用现金和 SGOV 储备买入 TQQQ。",
-        "- QQQ < 200MA - 3% 时，用 QQQ 空头代理 NQ/MNQ 对冲 TQQQ+JEPQ 市值；QQQ > 200MA + 3% 且未触发 BTD 时解除。",
-        "- TQQQ 权重达到 60% 时卖到 55%，卖出资金买入 SGOV。",
+        "- 初始资产按 TQQQ/JEPQ/JAAA = 50%/25%/25% 建仓。",
+        "- JEPQ 与 JAAA 分红按 Futu 派息日进入现金储备。",
+        "- QQQ 从最近历史高点回撤 -12%/-20%/-30% 时，按规则动用现金和 JAAA 储备买入 TQQQ。",
+        "- 默认不量化期货对冲；如显式传入 --include-hedge，则用 QQQ 空头代理 NQ/MNQ 的方向性损益。",
+        "- TQQQ 权重达到 65% 时恢复到 TQQQ/JEPQ/JAAA = 50%/25%/25%。",
         "",
         "## 未量化项",
         "",
-        "- VXN > 60 触发需要可用 VXN 历史序列；Futu 当前不支持美股指数 K 线，因此本次未启用 VXN 档。",
-        "- QQQ Put 黑天鹅保险需要连续期权链与可成交价格；本次不估算保险成本或赔付。",
+        "- VIX 接近 12 的 QQQ Put 黑天鹅保险需要 VIX 与连续期权链；本次不估算保险成本或赔付。",
+        "- 凸性 QQQ Call 增持需要期权链和趋势判定；本次不估算收益。",
         "- 未计佣金、滑点、税费、融资利息、期货保证金收益和期货展期。",
         "",
-        "来源：TheMarketMemo Patreon 文章《TQQQ 長期滾動投資策略》。非投资建议。",
+        "来源：TheMarketMemo Patreon 文章《TQQQ 槓鈴策略》。非投资建议。",
         "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
@@ -563,7 +540,7 @@ def main() -> int:
     parser.add_argument("--principal", type=float, default=100000.0)
     parser.add_argument("--source", choices=["futu", "yahoo"], default="futu")
     parser.add_argument("--rehab", choices=["none", "forward", "backward"], default="none")
-    parser.add_argument("--no-hedge", action="store_true")
+    parser.add_argument("--include-hedge", action="store_true", help="Include a deterministic QQQ short proxy for the optional NQ/MNQ hedge.")
     parser.add_argument("--out-dir", default="US-share/tqqq-long-term-rolling-strategy/backtests/2026-h1")
     args = parser.parse_args()
 
@@ -591,7 +568,7 @@ def main() -> int:
     all_nav: list[dict] = []
     all_logs: list[dict] = []
     summaries: list[dict] = []
-    for strategy in ["tqqq_rolling_strategy", "static_50_25_25", "tqqq_buy_hold"]:
+    for strategy in ["tqqq_barbell_strategy", "static_50_25_25", "tqqq_buy_hold"]:
         nav, logs, summary = run_strategy(
             strategy,
             dates,
@@ -599,7 +576,7 @@ def main() -> int:
             dividends,
             args.principal,
             start_index,
-            include_hedge=not args.no_hedge,
+            include_hedge=args.include_hedge,
         )
         all_nav.extend(nav)
         all_logs.extend(logs)

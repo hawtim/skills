@@ -4,6 +4,10 @@
 
 | Report Date | Gmail ID | Subject | Sender | Email Timestamp | Status | Key Source IDs | Cumulative Impact |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-25 | `19f97c2540311422` | TheMarketMemo Daily Report - 2026-07-25 | hawtimzhang@gmail.com | 2026-07-25T05:32:03 | processed; canonical non-test copy; no transferable information | none provided | No investment-principle, ticker/ETF/index stance, or risk-signal change. Canonical no-new-information report retained for traceability. |
+| 2026-07-24 | `19f929d227ac698e` | TheMarketMemo Daily Report - 2026-07-24 | hawtimzhang@gmail.com | 2026-07-24T05:33:19 | processed; canonical non-test copy | 2080376435404148883; 2080383215555301722; 2080353319449739404; 2080393003672474056; 2080358306703683814 | Added fair-value-range/margin-of-safety and conditional-trigger evidence; reinforced following the realised least-resistance path, the index-core/TQQQ-satellite hierarchy, and preplanned risk limits. Chart-only GOOGL/TSLA levels remain non-reproducible. |
+| 2026-07-23 | `19f8f73a5ad64255` | TheMarketMemo Daily Report - 2026-07-23 | hawtimzhang@gmail.com | 2026-07-23T14:49:08 | processed; canonical non-test copy (same-day duplicate `19f8f7314805f967` materially identical) | 2079984001402724685; 2079984003554464053; 2080020509698535856; 2080005755693109566; 2080037489545474118; 2080047850818568363; 2080000117063782441 | Added ETF primary-redemption versus secondary-price distinction; recorded dated `RSP` downside warning and disclosed `GOOGL` call as unverified tactical evidence, not portfolio instructions; reinforced tool/strategy separation. |
+| 2026-07-21 | `19f83f916667fd37` | TheMarketMemo Daily Report - 2026-07-21 | hawtimzhang@gmail.com | 2026-07-21T09:19:27 | processed | 2079323857174048967; 2079284929591198091 | Added a conditional BTC setup/trigger-candle/stop/partial-profit technical example; recorded the TSLA ten-year weekly-volume-low claim as an unverified, non-directional observation. |
 | 2026-07-20 | `19f7ed2b8475f013` | TheMarketMemo Daily Report - 2026-07-20 | hawtimzhang@gmail.com | 2026-07-20T09:19:27 | processed | 2078916830819971093 | Reinforced passive/rules-based/active path separation; added no-universal-ratio and return-target difficulty constraints; clarified Cash/cash-flow as a portfolio function for self-support. |
 | 2026-07-19 | `19f78d66a004c201` | TheMarketMemo Daily Report - 2026-07-19 | hawtimzhang@gmail.com | 2026-07-19T05:25:45 | processed | 2078569568617037849; 2078350292211417425; 2078536340342464613; 2078608560150524244; 2078371486306636136; 2078299568928604672; 2078650100939685902; 2078650541031166408 | Reinforced chip-volume peaks as fair-value references rather than bottoms; added the same-P/E price-path caveat and sentiment-amplification observation; retained `SKHY` conversion/premium and `SPCX` unlock claims as unverified dated risks. |
 | 2026-07-18 | `19f73b0cffbf73f5` | TheMarketMemo Daily Report - 2026-07-18 | hawtimzhang@gmail.com | 2026-07-18T05:26:34 | processed | 2078168566273294625; 2078168568517304663; 2078299568928604672; 2078350292211417425; 2077977976474660954; 2077976968969216086 | Added chip-volume-peak/consensus-price evidence and conditional `SOXX`/`RSP` weakness checks; reinforced diversified-index versus individual-stock discipline; preserved the dated `SKHY` ADR-arbitrage spillover claim as unverified revision-watch risk. |
@@ -31,9 +35,14 @@
 - `references/daily-reports/themarketmemo-daily-report-2026-07-18.md`
 - `references/daily-reports/themarketmemo-daily-report-2026-07-19.md`
 - `references/daily-reports/themarketmemo-daily-report-2026-07-20.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-21.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-23.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-24.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-25.md`
 
 ## Source Handling Notes
 
 - 2026-07-12 had both a canonical report and a same-body direct-send test. The non-test email is canonical.
 - All initial daily reports were fetched from Gmail search query `"TheMarketMemo Daily Report" -in:spam -in:trash`.
+- 2026-07-23 had two same-subject, non-test copies (`19f8f7314805f967` and `19f8f73a5ad64255`) with materially identical bodies. The later copy is canonical; the earlier copy is duplicate evidence, not a second report.
 - Future automation runs should skip already processed Gmail IDs unless the body content differs and the source log explains why.

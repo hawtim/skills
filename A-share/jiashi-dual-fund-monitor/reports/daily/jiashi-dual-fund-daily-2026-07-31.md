@@ -93,5 +93,5 @@
 
 ## 同步状态
 
-- GitHub Connect：待同步至 `hawtim/skills` 默认分支。
-- 远端 commit SHA：待回填。
+- GitHub Connect：已同步至 `hawtim/skills` 默认分支。
+- 远端初始同步 commit SHA：`66f5026455dff107c825e7ff76e6ae3fb43e0fe6`。

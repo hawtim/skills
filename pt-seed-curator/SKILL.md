@@ -24,6 +24,7 @@ Inspect qBittorrent through its local Web API in read-only mode, then score phys
 - Do not infer that multiple tracker tasks consume multiple copies of disk space.
 - Do not call pause, delete, recheck, move, category, tag, or tracker-mutating endpoints during an audit.
 - Before any requested deletion, show exact hashes, paths, tracker tasks, space that would really be released, and the recovery consequence. Require explicit confirmation.
+- When deletion is confirmed, remove both the qBittorrent tasks and their data. After qBittorrent reports success, verify every confirmed content path is absent and compare disk free space. If any path remains, identify the exact residual path and, under the same explicit confirmation, remove it or report the technical block. Do not report reclaimed space until filesystem verification succeeds.
 
 ## Recurring reports
 

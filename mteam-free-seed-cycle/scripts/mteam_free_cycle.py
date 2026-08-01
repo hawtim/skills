@@ -100,16 +100,29 @@ def download_torrent(config, torrent_id):
     url = mt_post(config, f"/torrent/genDlToken?id={urllib.parse.quote(torrent_id)}", {})
     if not isinstance(url, str) or not url.startswith("http"):
         raise RuntimeError("M-Team returned an invalid download URL")
-    return request(url, headers={"x-api-key": config["mteam_api_key"]})
+    headers = {
+        "x-api-key": config["mteam_api_key"], "Accept": "application/json, text/plain, */*",
+        "User-Agent": "Mozilla/5.0 MTeamFreeSeedCycle/1.0", "Origin": "https://kp.m-team.cc", "Referer": "https://kp.m-team.cc/",
+    }
+    torrent = request(url, headers=headers)
+    if not torrent.startswith(b"d"):
+        try:
+            message = json.loads(torrent).get("message")
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            message = "response was not a bencoded torrent file"
+        raise RuntimeError(f"M-Team torrent download failed: {message}")
+    return torrent
 
 
 def add_to_qb(config, torrent):
-    boundary = "----MTeamFreeCycleBoundary"
-    fields = {"savepath": config["save_path"], "paused": "false", "skip_checking": "false", "tags": "mteam-free-cycle", "contentLayout": "Original"}
+    boundary = "----MTeamCrossSeedBoundary7d25c"
+    fields = {"savepath": config["save_path"], "paused": "false", "tags": "mteam-free-cycle", "contentLayout": "Original"}
     chunks = [f"--{boundary}\r\nContent-Disposition: form-data; name=\"{key}\"\r\n\r\n{value}\r\n".encode() for key, value in fields.items()]
     chunks.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"torrents\"; filename=\"mteam.torrent\"\r\nContent-Type: application/x-bittorrent\r\n\r\n".encode() + torrent + b"\r\n")
     chunks.append(f"--{boundary}--\r\n".encode())
-    request(config["qbittorrent_url"].rstrip("/") + "/api/v2/torrents/add", method="POST", headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}, body=b"".join(chunks))
+    response = request(config["qbittorrent_url"].rstrip("/") + "/api/v2/torrents/add", method="POST", headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}, body=b"".join(chunks))
+    if response.strip() not in (b"Ok.", b""):
+        raise RuntimeError(f"qBittorrent add failed: {response[:200]!r}")
 
 
 def add(config, torrent_id, confirmed):

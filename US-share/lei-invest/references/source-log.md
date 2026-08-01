@@ -4,6 +4,8 @@
 
 | Report Date | Gmail ID | Subject | Sender | Email Timestamp | Status | Key Source IDs | Cumulative Impact |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-31 | `19fb6a8bd660f4a7` | TheMarketMemo Daily Report - 2026-07-31 | hawtimzhang@gmail.com | 2026-07-31T05:32:19 | processed; canonical non-test copy; no transferable information | none provided | No investment-principle, ticker/ETF/index stance, risk-signal, or contradiction change. Canonical no-new-information report retained for traceability. |
+| 2026-07-29 | `19fac5c96d8876ab` | TheMarketMemo Daily Report - 2026-07-29 | hawtimzhang@gmail.com | 2026-07-29T05:32:57 | processed; canonical non-test copy | 2082183797995720904; 2081937782902071609 | Added SPY 20/60-day moving-average conditional framework; reinforced separation of index structure from popular-stock weakness and the personal buy-pool exclusion for memory/hot stocks. Price and moving-average claims remain unverified source facts. |
 | 2026-07-28 | `19fa735fb620990b` | TheMarketMemo Daily Report - 2026-07-28 | hawtimzhang@gmail.com | 2026-07-28T05:32:40 | processed; canonical non-test copy | 2081820655083991088; 2081937782902071609; 2081607100124348862 | Added the distinction between institutional-flow observation and personal buy eligibility; recorded LEI's memory-stock exclusion under “earn the easiest money”; reinforced property-rights/rule-of-law as a long-horizon capital-allocation background. DRAM flow and institutional-data claims remain unverified source facts. |
 | 2026-07-27 | `19fa20fae02de198` | TheMarketMemo Daily Report - 2026-07-27 | hawtimzhang@gmail.com | 2026-07-27T05:32:44 | processed; canonical non-test copy | 2081217418081276078; 2081275940202860778; 2081419558452445655; 2081428500788228303; 2081456005976928547; 2081468618668454381 | Added DXY-breakout as a conditional cross-asset-risk/overweight-review framework; added the three momentum categories, including category-three three-day 20-day-MA failure boundary; reinforced active-path capacity limits and value-plus-return performance disclosure. Foreign-buying statistics remain unverified source facts. |
 | 2026-07-26 | `19f9ce8d5885630b` | TheMarketMemo Daily Report - 2026-07-26 | hawtimzhang@gmail.com | 2026-07-26T05:32:12 | processed; canonical non-test copy | 2080886328817012848; 2081067486553022911; 2081087191107919959; 2081140070875365703 | Reinforced Hi5 as the preferred disciplined long-term core; mapped its attack/defence/cash-flow functions; strengthened the claim that TQQQ needs a risk overlay rather than bare holding; recorded the unverified Benner 2026 profit-taking view under Revision Watch. |
@@ -24,6 +26,7 @@
 | 2026-07-09 | `19f548e50b63f2df` | TheMarketMemo Daily Report - 2026-07-09 | ZhangHawtim hawtim@icloud.com | 2026-07-12 12:20:23 Asia/Shanghai | processed | 2074713423393530091; 2074721860432847161; 2074751053992775996; 2074898778537226517; 2072585720850698386 | Added breadth percentages, technical bear-market breadth, and NQ structural consolidation framework. |
 | 2026-07-08 | `19f548e4f6bbe3a2` | TheMarketMemo Daily Report - 2026-07-08 | ZhangHawtim hawtim@icloud.com | 2026-07-12 12:20:21 Asia/Shanghai | processed | 2074349745687212536; 2074368102889058487 | Added QQQ breadth deterioration, AI-assisted holdings analysis, and index-vs-stock risk. |
 | 2026-07-07 | `19f386b169b9d025` | TheMarketMemo Daily Report - 2026-07-07 | ZhangHawtim hawtim@icloud.com | 2026-07-07 01:12:33 Asia/Shanghai | missing-body | none in email body | Email only says the report was saved elsewhere; no investment content processed. |
+| 2026-07-30 | `19fb1829dd0b8ab5` | TheMarketMemo Daily Report - 2026-07-30 | hawtimzhang@gmail.com | 2026-07-30T05:32:34 | processed; canonical non-test copy | 2082546122313310371; 2082551150201778359; 2082554403219997057; 2082548664636252538; 2082577234280472912 | Added DIA-as-late-trend-confirmation and QQQ/SOXX/GLD cross-asset relative-strength evidence; reinforced that risk recognition does not automatically justify shorting. All price, chart and narrative claims remain unverified source facts. |
 
 ## Canonical Report Files
 
@@ -45,6 +48,8 @@
 - `references/daily-reports/themarketmemo-daily-report-2026-07-26.md`
 - `references/daily-reports/themarketmemo-daily-report-2026-07-27.md`
 - `references/daily-reports/themarketmemo-daily-report-2026-07-28.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-29.md`
+- `references/daily-reports/themarketmemo-daily-report-2026-07-30.md`
 
 ## Source Handling Notes
 

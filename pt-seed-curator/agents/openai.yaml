@@ -1,0 +1,4 @@
+interface:
+  display_name: "PT Seed Curator"
+  short_description: "Score and safely curate qBittorrent seed libraries"
+  default_prompt: "Use $pt-seed-curator to review my qBittorrent library and report safe retention candidates."

@@ -126,4 +126,3 @@
 - 执行计划：[execution-plan.md](/Users/icemelon/Documents/invest/hawtim-skills/A-share/etf-theme-execution-plan/references/execution-plan.md)
 - 事件闸门：[event-gate.md](/Users/icemelon/Documents/invest/hawtim-skills/A-share/etf-theme-execution-plan/references/event-gate.md)
 - 报告规则：[daily-report-playbook.md](/Users/icemelon/Documents/invest/hawtim-skills/A-share/etf-theme-daily-report/references/daily-report-playbook.md)
-

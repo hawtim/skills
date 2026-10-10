@@ -1,0 +1,4 @@
+interface:
+  display_name: "M-Team Free Seed Cycle"
+  short_description: "Safely find and run one high-potential FREE seed cycle"
+  default_prompt: "Use $mteam-free-seed-cycle to evaluate and safely run one M-Team FREE seed cycle."
